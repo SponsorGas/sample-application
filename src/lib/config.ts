@@ -1,11 +1,4 @@
 export const config = {
-  '0x13881': {
-    name: 'Mumbai',
-    contractAddress: '',
-    symbol: 'TestMATIC',
-    blockExplorer: 'https://mumbai.polygonscan.com',
-    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
-  },
   '0xe704': {
     name: 'Goerli Linea',
     contractAddress: '0x0DFC533cA0E2ff075a66662dD85b626F72Ec317e',

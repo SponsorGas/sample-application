@@ -1,14 +1,14 @@
 'use client'
 import Image from 'next/image'
 import React from "react";
-// import { useMetaMask } from '@/hooks/useMetaMask';
-// import Drawer from '@/components/AccountDrawer';
-// import WalletConnect from '@/components/WalletConnect';
-// import WalletDashboard from '@/components/WalletDashboard';
+import { useMetaMask } from '@/hooks/useMetaMask';
+import Drawer from '@/components/AccountDrawer';
+import WalletConnect from '@/components/WalletConnect';
+import WalletDashboard from '@/components/WalletDashboard';
 
 export default function NavHeader() {
 
-  // const { wallet, isConnecting, connectMetaMask, sdk, sdkConnected } = useMetaMask()
+  const { wallet, isConnecting, connectMetaMask, sdk, sdkConnected } = useMetaMask()
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
@@ -25,20 +25,20 @@ export default function NavHeader() {
           </div>
           <div className="mb-6 flex gap-2">
             <div className="lg:flex lg:flex-1 gap-1 items-center lg:justify-end">
-              {/* <WalletConnect /> */} Connect
+              <WalletConnect />
             </div>
             <button className="bg-green-600 text-white inline-block h-10 w-10 rounded-full ring-2 ring-white"
               onClick={() => setIsOpen(true)} > KS </button>
           </div> 
           
-          {/* <Drawer isOpen={isOpen} setIsOpen={setIsOpen}>
+          <Drawer isOpen={isOpen} setIsOpen={setIsOpen}>
             {wallet.accounts.length < 1 
               ? <WalletConnect/>
               :<div className='flex justify-center w-full '>
                 <WalletDashboard />
               </div>
             }
-          </Drawer> */}
+          </Drawer>
         </nav>
       </header>
 

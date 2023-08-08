@@ -17,11 +17,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <MetaMaskContextProvider>
-      <div className="bg-white min-h-screen mx-auto p-4 bg-gradient-to-r from-yellow-50 from-20% via-purple-50 via-50% to-green-50">
-        <NavHeader/>
-        {children}
-      </div>
-    </MetaMaskContextProvider>
+    <html lang="en">
+      <body className={inter.className}>
+        <MetaMaskContextProvider>
+          <div className="bg-white min-h-screen mx-auto p-4 bg-gradient-to-r from-yellow-50 from-20% via-purple-50 via-50% to-green-50">
+            <NavHeader/>
+            {children}
+          </div>
+        </MetaMaskContextProvider>
+       
+      </body>
+    </html>
   )
 }
