@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { SimpleAccount } from '@/utils/simple_account';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { StakingContract__factory } from '@/staking-typechain';
 
 interface UserOperation {
   sender: string;
@@ -26,36 +27,71 @@ export default function Home() {
   const { wallet} = useMetaMask()
   const [selectedWalletType,setSelectedWalletType] = useState<string>('EOA')
   const [stakingAmount, setStakingAmount] = useState<string>("0");
-  const [remainingTime, setRemainingTime] = useState<number>(0);
   const [hasStaked, setHasStaked] = useState<boolean>(false); // New state variable
   const [scwAddress,setSCWAddress] = useState('')
   const [stakedAmount,setStakedAmount] = useState<string>("0");
+  const stakingContractAddress = process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS
+  
+  useEffect(() => {
+    const provider = new ethers.providers.Web3Provider(
+      window.ethereum as unknown as ethers.providers.ExternalProvider
+    );
+    const contract = StakingContract__factory.connect( stakingContractAddress!, provider )
+      
+    const getStakingDetails = async () => {
+      const stakingAmount = await contract.stakingAmount();
+      setStakingAmount(ethers.utils.formatEther(stakingAmount));
+    };
+    
+		
+    getStakingDetails();
+  }, [stakingContractAddress]);
 
   useEffect(() => {
-    
-    let isMounted = true; // Flag to track component mount status
-	
-		const fetchData = async () => {
+    const provider = new ethers.providers.Web3Provider(
+      window.ethereum as unknown as ethers.providers.ExternalProvider
+    );
+    const fetchSCWAddress = async() =>{
+      const signer = provider.getSigner();
+      const simpleAccount = new SimpleAccount(signer);
+      const [simpleAccountAddress] = await simpleAccount.getUserSimpleAccountAddress();
+      setSCWAddress(simpleAccountAddress);
+    }
+    if(wallet.accounts.length > 0)
+      fetchSCWAddress()
+  }, [wallet]);
+
+  
+  useEffect(() => {
+    const provider = new ethers.providers.Web3Provider(
+      window.ethereum as unknown as ethers.providers.ExternalProvider
+    );
+    const contract = StakingContract__factory.connect( stakingContractAddress!, provider )
+
+		const fetchStakedData = async () => {
 			
-				const provider = new ethers.providers.Web3Provider(
-					window.ethereum as unknown as ethers.providers.ExternalProvider
-				);
-				const signer = provider.getSigner();
-				const simpleAccount = new SimpleAccount(signer);
-				const [simpleAccountAddress] = await simpleAccount.getUserSimpleAccountAddress();
-				
-				if (isMounted) {
-					setSCWAddress(simpleAccountAddress);
-				}
-
-
+      let address=''
+      try{
+        if(selectedWalletType === 'EOA'){
+          address = wallet.address
+        }else if(selectedWalletType === 'SCW'){
+          address = scwAddress
+        }
+        const stakedAmount = await contract.stakedAmounts(address);
+        setHasStaked(stakedAmount > 0); // Check if staked amount is greater than 0
+        setStakedAmount(ethers.utils.formatEther(stakedAmount))
+      }catch(e){
+        console.log(e)
+      }
+      
 			
 		};
+
     if(wallet.accounts.length > 0){
-      fetchData();
+      fetchStakedData();
     }
 		
-  }, [selectedWalletType,wallet,scwAddress]);
+  }, [selectedWalletType, wallet, stakingContractAddress, scwAddress]);
 
   return (
     <div className="bg-white min-h-screen mx-auto p-4 bg-gradient-to-r from-yellow-50 from-20% via-purple-50 via-50% to-green-50">
@@ -118,7 +154,6 @@ export default function Home() {
             {!hasStaked && (
               <button
                 className="bg-blue-500 text-white  py-2 px-4 rounded-md mr-2"
-                disabled={remainingTime > 0}
               >
                 Stake
               </button>
@@ -126,7 +161,6 @@ export default function Home() {
             {hasStaked && (
               <button
                 className="bg-blue-500 text-white  py-2 px-4 rounded-md mr-2"
-                disabled={remainingTime <= 0}
               >
                 Withdraw {stakedAmount!='0' && stakedAmount} ETH
               </button>
