@@ -1,46 +1,89 @@
-export const config = {
+interface ApplicationConfig{
+  applicationContractAddress:string
+  name:string
+}
+interface ChainConfig {
+  name: string;
+  entryPointContractAddress:string;
+  ethStakingContractAddress: string;
+  symbol: string;
+  pimlicoChainValue:string;
+  blockExplorer: string;
+  rpcUrl: string;
+}
+
+interface Config {
+  [key: string]: ChainConfig;
+}
+
+export const config: Config = {
   '0xe704': {
     name: 'Goerli Linea',
-    contractAddress: '0x0DFC533cA0E2ff075a66662dD85b626F72Ec317e',
+    entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
+    ethStakingContractAddress:'0xea68b3efbbf63bb837f36a90aa97df27bbf9b864',
     symbol: 'LineaETH',
+    pimlicoChainValue:'linea-testnet',
     blockExplorer: 'https://explorer.goerli.linea.build',
     rpcUrl: 'https://rpc.goerli.linea.build',
   },
-  '0x5': {
-    name: 'Goerli',
-    contractAddress: '',
-    symbol: 'GoerliETH',
-    blockExplorer: 'https://goerli.etherscan.io',
-    rpcUrl: 'https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-  },
   '0x14a33': {
     name: 'Goerli Base',
-    contractAddress: '',
+    entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
+    ethStakingContractAddress:'',
     symbol: 'BaseETH',
+    pimlicoChainValue:'base-goerli',
     blockExplorer: 'https://goerli.basescan.org',
     rpcUrl: 'https://goerli.base.org',
   },
-  
   '0x1a4': {
     name: 'Goerli Optimism',
-    contractAddress: '',
+    entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
+    ethStakingContractAddress:'0xe6e61b4cb54ecfc67421b61bcdc5a566d91888ae',
     symbol: 'OptimismETH',
+    pimlicoChainValue:'optimism-goerli',
     blockExplorer: 'https://goerli-optimism.etherscan.io',
-    rpcUrl: 'https://optimism-goerli.publicnode.com',
+    rpcUrl: process.env.OPRIMISM_GOERLI_RPC!,
   }
 }
 
-/**
- * It returns true if the id is a key of the config object
- * @param {string | null} [id] - The network ID of the network you want to check.
- * @returns A function that takes an id and returns a boolean.
- */
-export const isSupportedNetwork = (id?: string | null): id is keyof typeof config => {
+export const isSupportedNetwork = (id: string) => {
   if (!id) {
-    return false
+    return false;
   }
-  const isHexChain = id.startsWith('0x')
-  const networkId = isHexChain ? id : `0x${Number(id).toString(16)}` // if not hexstring transform to hexString
-  // Make sure that networkId is in our supported network and is the current network set in .env
-  return !!(networkId in config && process.env.NEXT_PUBLIC_NETWORK_ID === networkId)
+  const isHexChain = id.startsWith('0x');
+  const networkId = isHexChain ? id : `0x${Number(id).toString(16)}`;
+  return !!(networkId in config );
+}
+
+
+export const getEntryPointContractAddressByChainId = (chainId: string): string | undefined => {
+  const chainConfig = config[chainId];
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig.entryPointContractAddress
+  } else {
+    return ''; // Chain ID not found in config
+  }
+}
+export const getPimlicoChainNameByChainId = (chainId: string): string | undefined => {
+  const chainConfig = config[chainId];
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig.pimlicoChainValue
+  } else {
+    return ''; // Chain ID not found in config
+  }
+}
+export const getChainConfigForChainId = (chainId: string): ChainConfig | undefined=> {
+  const chainConfig = config[chainId];
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig;
+  } 
+}
+export const getContractAddressByChainId = (chainId: string): string | undefined => {
+  const chainConfig = config[chainId];
+  console.log(chainConfig)
+  console.log(isSupportedNetwork(chainId))
+  console.log(chainId)
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig.ethStakingContractAddress;
+  } 
 }
