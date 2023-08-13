@@ -14,7 +14,7 @@ interface Config {
 }
 
 export const config: Config = {
-  
+ 
   '0x14a33': {
     name: 'Goerli Base',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
@@ -74,6 +74,13 @@ export const getContractAddressByChainId = (chainId: string): string | undefined
   
   if (chainConfig && isSupportedNetwork(chainId)) {
     return chainConfig.ethStakingContractAddress;
+  } 
+}
+export const getNFTContractAddressByChainId = (chainId: string): string | undefined => {
+  const chainConfig = config[chainId];
+  
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig.xSuperhackContractAddress;
   } 
 }
 export const getBlockExplorerURLByChainId = (chainId: string): string | undefined => {

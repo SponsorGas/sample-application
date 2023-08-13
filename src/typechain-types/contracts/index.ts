@@ -2,5 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { StakingContract } from "./StakingContract";
-export * as factories from "./factories";
-export { StakingContract__factory } from "./factories/StakingContract__factory";
+export type { XSuperhack } from "./XSuperhack";

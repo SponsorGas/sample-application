@@ -23,6 +23,13 @@ export default function NavHeader() {
               <span className='font-semibold text-xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>Sponsor Gas</span>
             </a>
           </div>
+          <div className="flex lg:flex-1">
+            <a href="/xsuperhack" className="-m-1.5 p-1.5 flex items-center">
+              <span className='font-semibold text-xl'>xSuperhack NFT</span>
+              <span className='font-bold text-3xl px-2'>X</span>
+              <span className='font-semibold text-xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>Sponsor Gas</span>
+            </a>
+          </div>
           <div className="mb-6 flex gap-2">
             <div className="lg:flex lg:flex-1 gap-1 items-center lg:justify-end">
               <WalletConnect />
