@@ -29,7 +29,7 @@ export const config: Config = {
   '0x14a33': {
     name: 'Goerli Base',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
-    ethStakingContractAddress:'',
+    ethStakingContractAddress:'0x7f829ab036fa3ac32928910152c78d93038dc3e2',
     symbol: 'BaseETH',
     pimlicoChainValue:'base-goerli',
     blockExplorer: 'https://goerli.basescan.org',
@@ -80,10 +80,15 @@ export const getChainConfigForChainId = (chainId: string): ChainConfig | undefin
 }
 export const getContractAddressByChainId = (chainId: string): string | undefined => {
   const chainConfig = config[chainId];
-  console.log(chainConfig)
-  console.log(isSupportedNetwork(chainId))
-  console.log(chainId)
+  
   if (chainConfig && isSupportedNetwork(chainId)) {
     return chainConfig.ethStakingContractAddress;
   } 
 }
+export const getBlockExplorerURLByChainId = (chainId: string): string | undefined => {
+  const chainConfig = config[chainId];
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig.blockExplorer;
+  } 
+}
+

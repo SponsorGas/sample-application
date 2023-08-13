@@ -2,7 +2,7 @@
 import Image from 'next/image'
 import {  Contract, ethers } from "ethers";
 import application_accepted from './application_accepted.png'
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { SimpleAccount } from '@/utils/simple_account';
 import { SimpleAccount__factory } from '@account-abstraction/contracts';
@@ -10,9 +10,11 @@ import { StakingContract__factory } from '@/staking-typechain';
 import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import {  getContractAddressByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
+import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import { Paymaster, SponsorGas } from '@/utils/sponsor_gas';
 import useSponsorGas from '@/hooks/useSponsorGas';
+import HorizontalLoading from '@/components/HorizontalLoading';
+import { Dialog, Transition } from '@headlessui/react';
 
 
 export interface UserOperation {
@@ -109,6 +111,7 @@ export default function Home() {
 
     if(wallet.accounts.length > 0 && stakingContractAddress  && stakingContractAddress != ''){
       fetchStakedData();
+      setSelectedPaymaster(undefined)
     }
 		
   }, [selectedWalletType, wallet, stakingContractAddress, scwAddress]);
@@ -124,6 +127,7 @@ export default function Home() {
           // console.log(applicationContractAddress)
           if (chainId && stakingContractAddress) {
             const paymasters = await SponsorGas.getPaymasters(chainId, stakingContractAddress);
+            console.log(paymasters)
             setPaymasterList(paymasters);
           } else {
             console.error("Chain ID or application contract address is missing.");
@@ -228,8 +232,8 @@ export default function Home() {
           }
 
           const txHash = receipt.receipt.transactionHash
-
-          console.log(`UserOperation included: https://goerli.lineascan.build/tx/${txHash}`)
+          const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
+          console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
           } else {
           console.log('Window was closed without data.');
         }
@@ -336,20 +340,55 @@ export default function Home() {
       }
   };
 
-
-  
-
   if (loadingPaymasters) {
     return <HorizontalLoading />;
   }
 
   if(isChallengePending){
-    return <div className='flex flex-col items-center w-full '>
-         <HorizontalLoading />
-        <p>Waiting for challenge Completion</p>
-    </div>
-   
+    return <Transition.Root show={isChallengePending} as={Fragment}>
+    <Dialog as="div" className="relative z-10" onClose={()=>{}}>
+      <Transition.Child
+        as={Fragment}
+        enter="ease-out duration-300"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="ease-in duration-200"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+      </Transition.Child>
+
+      <div className="fixed inset-0 z-10 overflow-y-auto">
+        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enterTo="opacity-100 translate-y-0 sm:scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg lg:max-w-5xl">
+              <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                <div className='flex flex-col items-center w-full '>
+                    <HorizontalLoading />
+                    <p>Waiting for challenge Completion</p>
+                
+                </div>
+                </div>
+              </div>
+              
+            </Dialog.Panel>
+          </Transition.Child>
+        </div>
+      </div>
+    </Dialog>
+  </Transition.Root>
   }
+
   return (
     <div className="bg-white min-h-screen mx-auto p-4 bg-gradient-to-r from-yellow-50 from-20% via-purple-50 via-50% to-green-50">
       <div className='flex flex-col items-center w-full '>
@@ -401,10 +440,15 @@ export default function Home() {
                     <span className="ml-2  text-xs text-gray-700 lowercase">{`(${scwAddress})`}</span>
                     
                   </label>
-                  <div className="ml-5 text-xs text-gray-700">
+                  {paymasterList.length >0 
+                  ?<div className="ml-5 text-xs text-gray-700">
                     <span onClick={handleSelectPaymaster} className='text-blue-700 cursor-pointer'>{`Click `}</span>
                     <span>{`to choose from ${paymasterList.length} sponsors`}</span>
                   </div>
+                  :<div className="ml-5 text-xs text-gray-700">
+                    <span>{`${paymasterList.length} sponsors available`}</span>
+                  </div>
+                  }
                   <div className="ml-5 text-xs text-gray-700">
                     {selectedPaymaster && <span>{` (${selectedPaymaster?.name} selected ) `}</span>}
                   </div>
@@ -412,7 +456,7 @@ export default function Home() {
               </div>
               
             </div>
-            {!hasStaked && (
+            {(!hasStaked && selectedPaymaster ) && (
               <button
                 className="bg-blue-500 text-white  py-2 px-4 rounded-md mr-2"
                 onClick={handleStake}
@@ -441,16 +485,5 @@ export default function Home() {
 
   );
 }
-const HorizontalLoading = () => {
-  return (
-    <div className="flex items-center justify-center h-16">
-      <div className="animate-bounce flex items-center space-x-2">
-        <div className="h-4 w-4 bg-blue-500 rounded-full"></div>
-        <div className="h-4 w-4 bg-blue-500 rounded-full"></div>
-        <div className="h-4 w-4 bg-blue-500 rounded-full"></div>
-      </div>
-    </div>
-  );
-};
 
 

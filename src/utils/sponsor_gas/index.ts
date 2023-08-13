@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { Web3Storage } from "web3.storage";
 
 export interface Chain {
 	id: number;
@@ -98,7 +98,28 @@ interface User {
 			const response = await fetch(`http://localhost:8001/api/chains/${chainId}/applications/${applicationContractAddress}/paymasters`)
 			if(response.ok){
 				const responseJson  =  await response.json()
-				const paymasters : Paymaster[] = responseJson.paymasters
+				let paymasters : Paymaster[] = responseJson.paymasters
+				const client = new Web3Storage({ token: process.env.NEXT_PUBLIC_WEB3_STORAGE_API_KEY! })
+				paymasters = await Promise.all(paymasters.map(async p => {
+					if(p.image){
+						try{
+							const imageFileResponse = await client.get(p.image as string)
+							if(imageFileResponse){
+								const files = await imageFileResponse.files();
+								const imageFile = await files[0];
+								const imageURL = `https://${imageFile.cid}.ipfs.w3s.link`
+								p.image = imageURL
+							}
+						}
+						catch(e){
+							console.log('catught error')
+							console.error(e)
+							p.image = undefined
+						}
+						
+					}
+					return p
+				}))
 				return paymasters
 			}
 			return []

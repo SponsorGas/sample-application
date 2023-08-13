@@ -108,7 +108,7 @@ const WalletDashboard = () => {
 									<div>
 										<TokenItem tokenImgPath={nativeTokenSymbol === 'TestMATIC'?'/matic-token-icon.svg':'/eth-token-icon.png'} tokenName={nativeTokenSymbol === 'TestMATIC'?'MATIC':'ETH'} tokenAmount={selectedAccountType.id === 'SCW'?scwBalance:wallet.balance} tokenSymbol={nativeTokenSymbol} />
 									</div>}
-							{activeTab === 'NFT' && <p>Content of Tab NFT</p>}
+							{activeTab === 'NFT' && <p>Coming soon</p>}
 					</div>
 			</div>
 		</article>

@@ -12,7 +12,7 @@ const useSponsorGas = () => {
 
     const enc = defaultAbiCoder.encode(['address','bytes','bytes','uint','address'],[_userOperation.sender,_userOperation.initCode,_userOperation.callData,_chain,_entryPointContractAddress])
     const scopeId = keccak256(enc)
-    const redirect_url = `http://localhost:3001`
+    const redirect_url = `${window.location.href}`
     const paymasterId = paymaster.id
     // Step 1: Call the API
     // const response = await fetch(`http://localhost:8001/api/paymasters/0x1234?scope=1&redirect_url=http://localhost:3001`); // Use the provided URL parameter
@@ -85,6 +85,7 @@ const useSponsorGas = () => {
       const checkWindowClosed = setInterval(() => {
         if (newChallengeWindow && newChallengeWindow.closed) {
           clearInterval(checkWindowClosed);
+          setIsChallengePending(false)
           window.removeEventListener('message', handleMessage);
           resolve(null); // Resolve with null if window was closed without data
         }
