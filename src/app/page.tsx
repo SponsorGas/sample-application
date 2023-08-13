@@ -46,7 +46,9 @@ export default function Home() {
   const [selectedPaymaster,setSelectedPaymaster] = useState<Paymaster>()
   const [paymasterModalIsOpen,setPaymasterModalIsOpen] = useState(false)
   
-  
+  const [isLoading,setLoading] = useState(false)
+  const [transactionReceipt,setTransactionReceipt] = useState('')
+
   const stakingContractAddress = useMemo(() => {
     if (wallet.chainId) {
       return getContractAddressByChainId(wallet.chainId);
@@ -153,6 +155,7 @@ export default function Home() {
   }
   const handleStake = async () => {
     // Implement stake functionality using ethers.js
+    setLoading(true)
     const provider = new ethers.providers.Web3Provider(
       window.ethereum as unknown as ethers.providers.ExternalProvider,
     )
@@ -236,6 +239,7 @@ export default function Home() {
           const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
           console.log(wallet.chainId, blockExplorer)
           console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
+          setTransactionReceipt(`${blockExplorer}/tx/${txHash}`)
           } else {
           console.log('Window was closed without data.');
         }
@@ -255,6 +259,7 @@ export default function Home() {
 
 
   const handleWithdraw = async () => {
+    setLoading(true)
     // Implement stake functionality using ethers.js
     const provider = new ethers.providers.Web3Provider(
       window.ethereum as unknown as ethers.providers.ExternalProvider,
@@ -334,8 +339,10 @@ export default function Home() {
           }
 
           const txHash = receipt.receipt.transactionHash
-
-          console.log(`UserOperation included: https://goerli.lineascan.build/tx/${txHash}`)
+          const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
+          console.log(wallet.chainId, blockExplorer)
+          console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
+          setTransactionReceipt(`${blockExplorer}/tx/${txHash}`)
           } else {
           console.log('Window was closed without data.');
         }
@@ -346,9 +353,9 @@ export default function Home() {
     return <HorizontalLoading />;
   }
 
-  if(isChallengePending){
-    return <Transition.Root show={isChallengePending} as={Fragment}>
-    <Dialog as="div" className="relative z-10" onClose={()=>{}}>
+  if(isChallengePending || isLoading){
+    return <Transition.Root show={isChallengePending || isLoading} as={Fragment}>
+    <Dialog as="div" className="relative z-10" onClose={() =>{}}>
       <Transition.Child
         as={Fragment}
         enter="ease-out duration-300"
@@ -376,13 +383,27 @@ export default function Home() {
               <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                 <div className='flex flex-col items-center w-full '>
-                    <HorizontalLoading />
-                    <p>Waiting for challenge Completion</p>
-                
+                    {transactionReceipt === '' && <HorizontalLoading />}
+                    {isChallengePending  && <p>Waiting for challenge Completion...</p>}
+                    {transactionReceipt != '' && 
+                      <p>UserOperation included:
+                        <a href={transactionReceipt} className="text-blue-500 hover:underline"
+                          target="_blank" rel="noopener noreferrer" >receipt</a>
+                      </p>
+                    }
                 </div>
                 </div>
               </div>
-              
+              {transactionReceipt != '' && <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                  <button
+                    type="button"
+                    className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
+                    onClick={() => {setTransactionReceipt('');setLoading(false)}}
+                  >
+                    Close
+                  </button>
+                 
+                </div>}
             </Dialog.Panel>
           </Transition.Child>
         </div>
@@ -394,6 +415,7 @@ export default function Home() {
   return (
     <div className="bg-white min-h-screen mx-auto p-4 bg-gradient-to-r from-yellow-50 from-20% via-purple-50 via-50% to-green-50">
       <div className='flex flex-col items-center w-full '>
+        
         <div className="bg-white p-4 rounded-xl mb-4 flex flex-col items-center w-2/4">
           <Image className="h-2/6 w-auto rounded-full border-white" src={application_accepted} alt="Application Accepted" />
           <p className="text-md mb-2">Your hacker application for Superhack has been accepted!</p>
@@ -479,7 +501,7 @@ export default function Home() {
           <p className="text-xs mb-4">{`Supported networks:  Optimism, Base`}</p>
           <p className="text-sm mb-2">{`Any questions? Don't hesitate to contact us on Discord or email.`}</p>
         </div>
-
+       
          
       </div>
       <PaymasterModal isOpen={paymasterModalIsOpen} setOpen={setPaymasterModalIsOpen} selectedPaymaster={selectedPaymaster} setSelectPaymaster={setSelectedPaymaster}  paymasterList={paymasterList}/>
