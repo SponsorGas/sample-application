@@ -154,6 +154,7 @@ export default function Home() {
                                 signer
                               ).interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
       const data = mintingCall
+      console.log(`Mint call data: ${data}`)
       const simpleAccountContract = SimpleAccount__factory.connect(
         simpleAccountAddress!,
         signer,

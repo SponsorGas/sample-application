@@ -167,6 +167,7 @@ export default function Home() {
                               ).interface.encodeFunctionData("stake")
       // const data = "0x68656c6c6f" // "hello" encoded to utf-8 bytes
       const data = stakingCall
+      console.log(`Stake call data: ${data}`)
       const simpleAccountContract = SimpleAccount__factory.connect(
         simpleAccountAddress!,
         signer,

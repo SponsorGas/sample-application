@@ -6,6 +6,10 @@ import React, { useState } from 'react';
 const useSponsorGas = () => {
   const [challengeWindow, setChallengeWindow] = useState<Window | null>(null);
   const [isChallengePending, setIsChallengePending] = useState<boolean>(false);
+  
+  const checkIfNFTCriteria = (paymaster: Paymaster) =>{
+    return paymaster.PaymasterCriteria?.find(pc => pc.type === 'nft_challenge' )? true:false 
+  }
 
   const getPaymasterAndData = async (paymaster: Paymaster, _userOperation:Partial<UserOperation>, _chain: string, _entryPointContractAddress: string) => {
     setIsChallengePending(true);
@@ -20,11 +24,15 @@ const useSponsorGas = () => {
 
     // Step 2: Open the redirect URL in a new window
     // const newWindow = window.open(data.redirectUrl, '_blank');
-    console.log(paymaster)
-		const newChallengeWindow = window.open(`${paymaster.paymasterOffchainService}?paymasterId=${paymasterId}&scope=${scopeId}&redirect_url=${redirect_url}`,'_blank')
-    setChallengeWindow(newChallengeWindow);
 
-    // Create a promise that resolves when data is received
+    const isNFTCriteria:boolean = checkIfNFTCriteria(paymaster)
+    console.log(`isNFTCriteria : ${isNFTCriteria}`)
+    console.log(paymaster)
+    if(!isNFTCriteria){
+     
+      const newChallengeWindow = window.open(`${paymaster.paymasterOffchainService}?paymasterId=${paymasterId}&scope=${scopeId}&redirect_url=${redirect_url}`,'_blank')
+      setChallengeWindow(newChallengeWindow);
+      // Create a promise that resolves when data is received
     const paymasterAndDataPromise = new Promise<string | null>((resolve) => {
       const handleMessage = async (event: MessageEvent) => {
         if (event.origin === 'http://localhost:8001' && event.data.target === 'sponsor-gas') {
@@ -91,11 +99,93 @@ const useSponsorGas = () => {
           window.removeEventListener('message', handleMessage);
           resolve(null); // Resolve with null if window was closed without data
         }
-      }, 10000);
+      }, 3000);
     });
 
     // setDataPromise(newDataPromise);
 		return paymasterAndDataPromise
+    }
+    else{
+      try{
+        const response = await fetch(`${paymaster.paymasterOffchainService}/challenges/nft/submit?paymasterId=${paymasterId}&scope=${scopeId}&redirect_url=${redirect_url}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userOperation:_userOperation }),
+        });
+
+        console.log(response)
+        // Check if the API call was successful
+        if (response.ok) {
+          // Get the JSON data from the response
+          const data = await response.json();
+          console.log(data)
+          const authCode = data.AuthCode
+          try {
+            const response = await fetch(`http://localhost:8001/api/paymasters/${paymaster.paymasterAddress}/access_token`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+								},
+								body: JSON.stringify({ auth_code:authCode}),
+								credentials: 'include', // Include cookies in the request
+            	});
+    
+            // Check if the API call was successful
+            if (response.ok) {
+              console.log('Got Access Code.');
+              console.log(_userOperation)
+              const paymasterAndDataResponse = await fetch(`http://localhost:8001/api/paymasters/${paymaster.paymasterAddress}/paymasterAndData`,{
+											method:'POST',
+											headers:{
+												'Content-Type':'application/json',
+											},
+											body:JSON.stringify({_userOperation,
+														'entryPoint': _entryPointContractAddress,
+														'chainId': _chain
+													}),
+											credentials: 'include', 
+										});
+              console.log(paymasterAndDataResponse)
+              // Check if the API call was successful
+              if (paymasterAndDataResponse.ok) {
+                const responseData= await paymasterAndDataResponse.json();
+								setIsChallengePending(false);
+								console.log(responseData.userOperation)
+								return responseData.userOperation.paymasterAndData;
+							}else{
+                console.log(`paymasterAndData response: ${paymasterAndDataResponse.status}`)
+              }
+            } else {
+              // Handle the case when the API call fails
+              console.error('Failed Getting Access Code');
+              // You can show an error message to the user or handle the error in any other way
+            }
+    
+    
+          } catch (error) {
+            // Handle any other errors that may occur during the API call
+            console.error('An error occurred:', error);
+						return null;
+          }finally{
+						setIsChallengePending(false);
+					}
+        } else {
+          // Handle the case when the API call fails
+          console.error('Challenge submission failed.');
+          // You can show an error message to the user or handle the error in any other way
+        }
+
+      }catch(e){
+        setIsChallengePending(false)
+      }
+      // checkIfEligibleForSponsorship
+      setIsChallengePending(false)
+      return null
+      
+    }
+    
   };
 
   return { getPaymasterAndData, challengeWindow, isChallengePending };
