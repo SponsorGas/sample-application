@@ -30,7 +30,7 @@ const useSponsorGas = () => {
         if (event.origin === 'http://localhost:8001' && event.data.target === 'sponsor-gas') {
           const newData = event.data;
           try {
-            const response = await fetch("http://localhost:8001/api/paymasters/0x1234/access_token", {
+            const response = await fetch(`http://localhost:8001/api/paymasters/${paymaster.paymasterAddress}/access_token`, {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ const useSponsorGas = () => {
             if (response.ok) {
               console.log('Got Access Code.');
               console.log(_userOperation)
-              const paymasterAndDataResponse = await fetch("http://localhost:8001/api/paymasters/0x1234/paymasterAndData",{
+              const paymasterAndDataResponse = await fetch(`http://localhost:8001/api/paymasters/${paymaster.paymasterAddress}/paymasterAndData`,{
 											method:'POST',
 											headers:{
 												'Content-Type':'application/json',
@@ -54,14 +54,16 @@ const useSponsorGas = () => {
 													}),
 											credentials: 'include', 
 										});
-    
+              console.log(paymasterAndDataResponse)
               // Check if the API call was successful
               if (paymasterAndDataResponse.ok) {
                 const responseData= await paymasterAndDataResponse.json();
 								setIsChallengePending(false);
 								console.log(responseData.userOperation)
 								resolve(responseData.userOperation.paymasterAndData);
-							}
+							}else{
+                console.log(`paymasterAndData response: ${paymasterAndDataResponse.status}`)
+              }
             } else {
               // Handle the case when the API call fails
               console.error('Failed Getting Access Code');

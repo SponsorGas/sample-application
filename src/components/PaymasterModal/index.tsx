@@ -42,6 +42,7 @@ export default function PaymasterModal({isOpen,setOpen,paymasterList,setSelectPa
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg lg:max-w-5xl">
                 <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                  <h2 className='text-xl font-semibold'>Select gas sponsor</h2>
                   <div className="sm:flex sm:items-start">
                     <PaymastersGrid paymasterList={paymasterList} selectedPaymaster={selectedPaymaster} setSelectPaymaster={setSelectPaymaster}/>
                   </div>

@@ -1,11 +1,8 @@
-interface ApplicationConfig{
-  applicationContractAddress:string
-  name:string
-}
 interface ChainConfig {
   name: string;
   entryPointContractAddress:string;
   ethStakingContractAddress: string;
+  xSuperhackContractAddress:string;
   symbol: string;
   pimlicoChainValue:string;
   blockExplorer: string;
@@ -17,19 +14,12 @@ interface Config {
 }
 
 export const config: Config = {
-  '0xe704': {
-    name: 'Goerli Linea',
-    entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
-    ethStakingContractAddress:'0xea68b3efbbf63bb837f36a90aa97df27bbf9b864',
-    symbol: 'LineaETH',
-    pimlicoChainValue:'linea-testnet',
-    blockExplorer: 'https://explorer.goerli.linea.build',
-    rpcUrl: 'https://rpc.goerli.linea.build',
-  },
+  
   '0x14a33': {
     name: 'Goerli Base',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0x7f829ab036fa3ac32928910152c78d93038dc3e2',
+    xSuperhackContractAddress:'0x36d07d0b52eab491d714732c7cc79dc39e3ab373',
     symbol: 'BaseETH',
     pimlicoChainValue:'base-goerli',
     blockExplorer: 'https://goerli.basescan.org',
@@ -39,6 +29,7 @@ export const config: Config = {
     name: 'Goerli Optimism',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0xe6e61b4cb54ecfc67421b61bcdc5a566d91888ae',
+    xSuperhackContractAddress:'0x7F829Ab036fa3aC32928910152C78D93038Dc3e2',
     symbol: 'OptimismETH',
     pimlicoChainValue:'optimism-goerli',
     blockExplorer: 'https://goerli-optimism.etherscan.io',

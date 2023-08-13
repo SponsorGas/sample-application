@@ -233,6 +233,7 @@ export default function Home() {
 
           const txHash = receipt.receipt.transactionHash
           const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
+          console.log(wallet.chainId, blockExplorer)
           console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
           } else {
           console.log('Window was closed without data.');
