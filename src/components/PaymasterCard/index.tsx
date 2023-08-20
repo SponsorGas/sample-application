@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { formatAddress } from "@/utils";
-import { Paymaster } from "@/utils/sponsor_gas";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import { StarIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { Paymaster } from "../../../../sponsor-gas-sdk/dist/model";
 
 interface PaymasterCardProps {
   paymaster: Paymaster;

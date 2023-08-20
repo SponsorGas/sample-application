@@ -14,6 +14,16 @@ interface Config {
 }
 
 export const config: Config = {
+  '0xe704': {
+    name: 'Goerli Linea',
+    entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
+    ethStakingContractAddress:'0xea68b3efbbf63bb837f36a90aa97df27bbf9b864',
+    xSuperhackContractAddress:'',
+    symbol: 'LineaETH',
+    pimlicoChainValue:'linea-testnet',
+    blockExplorer: 'https://explorer.goerli.linea.build',
+    rpcUrl: 'https://rpc.goerli.linea.build',
+  },
   '0x14a33': {
     name: 'Goerli Base',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',

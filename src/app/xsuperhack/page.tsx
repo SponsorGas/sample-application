@@ -10,11 +10,11 @@ import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
-import { Paymaster, SponsorGas } from '@/utils/sponsor_gas';
-import useSponsorGas from '@/hooks/useSponsorGas';
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { StakingContract__factory, XSuperhack__factory } from '@/typechain-types';
+import { SponsorGas } from 'sponsor-gas-sdk';
+import { Paymaster } from '../../../../sponsor-gas-sdk/dist/model';
 
 
 export interface UserOperation {
@@ -34,13 +34,14 @@ export interface UserOperation {
 export default function Home() {
 
   const { wallet } = useMetaMask()
-  const {getPaymasterAndData,isChallengePending} = useSponsorGas()
+  // const {getPaymasterAndData,isChallengePending} = useSponsorGas()
   const [selectedWalletType,setSelectedWalletType] = useState<string>('EOA')
   const [stakingAmount, setStakingAmount] = useState<string>("___");
   const [hasMinted, setHasMinted] = useState<boolean>(false); // New state variable
   const [scwAddress,setSCWAddress] = useState('')
   const [mintedCount,setMintedCount] = useState<string>("0");
 
+  const [isLoading,setLoading] = useState(false)
   const [loadingPaymasters, setLoadingPaymaster] = useState(true);
   const [paymasterList, setPaymasterList] = useState<Paymaster[]>([]);
   const [selectedPaymaster,setSelectedPaymaster] = useState<Paymaster>()
@@ -112,7 +113,8 @@ export default function Home() {
           // const applicationContractAddress = getContractAddressByChainId(chainId);
           // console.log(applicationContractAddress)
           if (chainId && nftContractAddress) {
-            const paymasters = await SponsorGas.getPaymasters(chainId, nftContractAddress);
+            const sponsorGas = new SponsorGas()
+            const paymasters = await sponsorGas.getPaymasters(chainId, nftContractAddress);
             console.log(paymasters)
             setPaymasterList(paymasters);
           } else {
@@ -139,6 +141,7 @@ export default function Home() {
   }
 
   const handleMint = async () => {
+    setLoading(true)
     // Implement stake functionality using ethers.js
     const provider = new ethers.providers.Web3Provider(
       window.ethereum as unknown as ethers.providers.ExternalProvider,
@@ -186,7 +189,8 @@ export default function Home() {
         const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
         const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
         const entryPointContractAddress = getEntryPointContractAddressByChainId(wallet.chainId)!// '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'
-        const paymasterAndData = await getPaymasterAndData(selectedPaymaster!,userOperation,wallet.chainId,entryPointContractAddress)
+        const sponsorGas = new SponsorGas()
+        const paymasterAndData = await sponsorGas.getPaymasterAndData(selectedPaymaster!,userOperation,wallet.chainId,entryPointContractAddress)
         console.log(`PaymasterAndData: ${paymasterAndData}`)
         
         if (paymasterAndData){
@@ -225,8 +229,10 @@ export default function Home() {
           console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
           } else {
           console.log('Window was closed without data.');
+          setLoading(false)
         }
       }
+      setLoading(false)
   };
   const getNonceValue = async (c:Contract) => {
     let nonceValue = 0;
@@ -244,8 +250,8 @@ export default function Home() {
     return <HorizontalLoading />;
   }
 
-  if(isChallengePending){
-    return <Transition.Root show={isChallengePending} as={Fragment}>
+  if(isLoading){
+    return <Transition.Root show={isLoading} as={Fragment}>
     <Dialog as="div" className="relative z-10" onClose={()=>{}}>
       <Transition.Child
         as={Fragment}
