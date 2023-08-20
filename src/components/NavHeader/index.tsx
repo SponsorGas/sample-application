@@ -1,36 +1,52 @@
 'use client'
-import Image from 'next/image'
-import React from "react";
+import React, { useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import Drawer from '@/components/AccountDrawer';
 import WalletConnect from '@/components/WalletConnect';
 import WalletDashboard from '@/components/WalletDashboard';
+import ApplicationDropdown, { ApplicationDropdownOption, ApplicationLogo } from '../Dropdown/ApplicationDropdown';
+import { usePathname, useRouter } from 'next/navigation';
+import { Router } from "next/router";
+
+const applications:ApplicationDropdownOption[] = [ {
+  id:'1',
+  name:"ETHGlobal Staking",
+  value: <ApplicationLogo name='ETHGlobal Staking' sponsor="SponsorGas" image='/ethglobal.png' />,
+  url:'/staking'
+
+},{
+  id:'2',
+  name:"xSuperhack NFT",
+  value: <ApplicationLogo name='xSuperhack NFT' sponsor="SponsorGas" />,
+  url:'/nft'
+},{
+  id:'3',
+  name:"NAVH Pay",
+  value: <ApplicationLogo name='NAVH Pay' sponsor="SponsorGas" />,
+  url:'/pay'
+}]
 
 export default function NavHeader() {
 
-  const { wallet, isConnecting, connectMetaMask, sdk, sdkConnected } = useMetaMask()
+  const { wallet} = useMetaMask()
   const [isOpen, setIsOpen] = React.useState(false);
+  const pathname = usePathname()
+  const [selectedApplication,setSelectedApplication] = useState<ApplicationDropdownOption | undefined>(applications.find(a => a.url == `${pathname}`))
+  const router = useRouter()
 
+  const handleApplicationSelection = (option:ApplicationDropdownOption|undefined) =>{
+    setSelectedApplication(option)
+    if(option && option.url){
+      router.push(option.url)
+    }
+  }
   return (
       <header >
         <nav className="mx-auto flex max-w-8xl items-center justify-between p-2 lg:px-8" aria-label="Global">
-          <div className="flex lg:flex-1">
-            <a href="#" className="-m-1.5 p-1.5 flex items-center">
-              <Image width={50} height={50} className="rounded-full border-yellow-200" src={'/ethglobal.png'} alt="Logo" />
-              <span className='font-semibold text-xl'>ETH</span>
-              <span className='text-xl'>Global</span>
-              <span className='font-bold text-3xl px-2'>X</span>
-              <span className='font-semibold text-xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>Sponsor Gas</span>
-            </a>
+          <div className="flex ">
+            <ApplicationDropdown options={applications} setSelected={handleApplicationSelection} selected={selectedApplication} />
           </div>
-          <div className="flex lg:flex-1">
-            <a href="/xsuperhack" className="-m-1.5 p-1.5 flex items-center">
-              <span className='font-semibold text-xl'>xSuperhack NFT</span>
-              <span className='font-bold text-3xl px-2'>X</span>
-              <span className='font-semibold text-xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>Sponsor Gas</span>
-            </a>
-          </div>
-          <div className="mb-6 flex gap-2">
+          <div className="flex gap-2">
             <div className="lg:flex lg:flex-1 gap-1 items-center lg:justify-end">
               <WalletConnect />
             </div>

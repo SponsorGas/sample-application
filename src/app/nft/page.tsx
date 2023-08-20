@@ -31,7 +31,7 @@ export interface UserOperation {
   signature: string;
 }
 
-export default function Home() {
+export default function NFT() {
 
   const { wallet } = useMetaMask()
   // const {getPaymasterAndData,isChallengePending} = useSponsorGas()
@@ -127,7 +127,7 @@ export default function Home() {
         setLoadingPaymaster(false);
       }
     };
-    console.log(wallet.chainId)
+    // console.log(wallet.chainId)
     if(wallet.accounts.length > 0 && nftContractAddress  && nftContractAddress != ''){
       fetchRegisteredPaymaster();
     }else{
