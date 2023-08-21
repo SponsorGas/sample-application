@@ -1,11 +1,6 @@
 "use client"
-
-import { Fragment, useEffect, useRef, useState } from "react";
-
-import { useMetaMask } from "@/hooks/useMetaMask";
-
 import { PaymasterCard } from "../PaymasterCard";
-import { Paymaster} from "@/utils/sponsor_gas";
+import { Paymaster} from "sponsor-gas-simple-sdk/dist/model";
 
 interface PraymasterGridProps{
   paymasterList:Paymaster[],

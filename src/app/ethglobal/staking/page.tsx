@@ -10,11 +10,11 @@ import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
-import {SponsorGas} from 'sponsor-gas-sdk'
+import {SponsorGas} from 'sponsor-gas-simple-sdk'
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { StakingContract__factory } from '@/typechain-types';
-import { Paymaster } from '../../../../../sponsor-gas-sdk/dist/model';
+import { Paymaster } from 'sponsor-gas-simple-sdk/dist/model';
 
 
 export default function Staking() {

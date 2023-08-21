@@ -13,8 +13,8 @@ import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPoin
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { StakingContract__factory, XSuperhack__factory } from '@/typechain-types';
-import { SponsorGas } from 'sponsor-gas-sdk';
-import { Paymaster } from '../../../../../sponsor-gas-sdk/dist/model';
+import { SponsorGas } from 'sponsor-gas-simple-sdk';
+import { Paymaster } from 'sponsor-gas-simple-sdk/dist/model';
 
 
 export interface UserOperation {

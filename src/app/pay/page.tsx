@@ -6,8 +6,7 @@ import { SimpleAccount__factory } from "@account-abstraction/contracts";
 import { Contract, ethers } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import React, { FormEvent, Fragment, useEffect, useState } from "react";
-import { SponsorGas } from "sponsor-gas-sdk";
-import { Paymaster } from "../../../../sponsor-gas-sdk/dist/model";
+import { SponsorGas } from "sponsor-gas-simple-sdk";
 import WalletConnect from "@/components/WalletConnect";
 import { ArrowLeftCircleIcon, ArrowRightCircleIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import PaymasterModal from "@/components/PaymasterModal";
@@ -16,6 +15,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { useToast } from "@/providers/ToastProvider";
 import { Dialog, Transition } from "@headlessui/react";
+import { Paymaster } from "sponsor-gas-simple-sdk/dist/model";
 
 
 export default function Pay() {
@@ -56,8 +56,8 @@ export default function Pay() {
 		{loadingPaymasters && <LoadingOverlay />}
 		<div className="bg-white p-6 rounded-lg shadow-md w-full">
 			<ol className="items-center w-full space-y-4 sm:flex sm:space-x-8 sm:space-y-0">
-					<li className={`flex items-center ${currentStep === 1 ?  'text-blue-600 dark:text-blue-500':' text-gray-500 dark:text-gray-400'} space-x-2.5`}>
-							<span className={`flex items-center justify-center w-8 h-8 border ${currentStep === 1 ?  'border-blue-600  dark:border-blue-500':''} rounded-full shrink-0 `}>
+					<li className={`flex items-center ${currentStep === 1 ?  'text-blue-600 dark:text-blue-500': (wallet.accounts.length > 0 ?'text-green-800 dark:text-green-800':' text-gray-500 dark:text-gray-400')} space-x-2.5`}>
+							<span className={`flex items-center justify-center w-8 h-8 border ${currentStep === 1 ?  'border-blue-600  dark:border-blue-500':  (wallet.accounts.length > 0 ?'border-green-800 dark:border-green-800':'')} rounded-full shrink-0 `}>
 									1
 							</span>
 							<span>
@@ -65,8 +65,8 @@ export default function Pay() {
 									<p className="text-sm">Connect Wallet</p>
 							</span>
 					</li>
-					<li className={`flex items-center ${currentStep === 2 ?  'text-blue-600 dark:text-blue-500':' text-gray-500 dark:text-gray-400'} space-x-2.5`}>
-					<span className={`flex items-center justify-center w-8 h-8 border ${currentStep === 2 ?  'border-blue-600  dark:border-blue-500':''} rounded-full shrink-0 `}>
+					<li className={`flex items-center ${currentStep === 2 ?  'text-blue-600 dark:text-blue-500': (selectedPaymaster ?'text-green-800 dark:text-green-800':' text-gray-500 dark:text-gray-400')} space-x-2.5`}>
+					<span className={`flex items-center justify-center w-8 h-8 border ${currentStep === 2 ?  'border-blue-600  dark:border-blue-500':  (selectedPaymaster ?'border-green-800 dark:border-green-800':'')} rounded-full shrink-0 `}>
 									2
 							</span>
 							<span>
@@ -74,7 +74,7 @@ export default function Pay() {
 									<p className="text-sm">Select Sponsor</p>
 							</span>
 					</li>
-					<li className={`flex items-center ${currentStep === 3 ?  'text-blue-600 dark:text-blue-500':' text-gray-500 dark:text-gray-400'} space-x-2.5`}>
+					<li className={`flex items-center ${currentStep === 3 ?  'text-blue-600 dark:text-blue-500': ''} space-x-2.5`}>
 					<span className={`flex items-center justify-center w-8 h-8 border ${currentStep === 3 ?  'border-blue-600  dark:border-blue-500':''} rounded-full shrink-0 `}>
 									3
 							</span>
@@ -329,8 +329,9 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 					<span>Back</span>
 				</button>
 				<button
+					disabled={amount === '' || recipient === ''}
 					type="submit"
-					className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+					className={`bg-blue-500 ${(amount === '' || recipient === '') ?'': 'hover:bg-blue-600'}  text-white py-2 px-4 rounded-md`}
 				>
 					Transfer
 				</button>
@@ -401,7 +402,8 @@ interface TransactionReceiptModalProps{
 	amount:string
 	receiptLink:string
 }
-export function TransactionReceiptModal({isOpen,setOpen,sender,recipient,amount,receiptLink}:TransactionReceiptModalProps) {
+
+function TransactionReceiptModal({isOpen,setOpen,sender,recipient,amount,receiptLink}:TransactionReceiptModalProps) {
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10"  onClose={setOpen}>

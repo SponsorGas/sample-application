@@ -12,13 +12,13 @@ const applications:ApplicationDropdownOption[] = [ {
   id:'1',
   name:"ETHGlobal Staking",
   value: <ApplicationLogo name='ETHGlobal Staking' sponsor="SponsorGas" image='/ethglobal.png' />,
-  url:'/staking'
+  url:'/ethglobal/staking'
 
 },{
   id:'2',
   name:"xSuperhack NFT",
   value: <ApplicationLogo name='xSuperhack NFT' sponsor="SponsorGas" />,
-  url:'/nft'
+  url:'/ethglobal/nft'
 },{
   id:'3',
   name:"Sponsor Pay",
