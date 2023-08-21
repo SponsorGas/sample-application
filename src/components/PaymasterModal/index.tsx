@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import PaymastersGrid from '../PaymastersGrid'
-import { Paymaster } from '../../../../sponsor-gas-sdk/dist/model';
+import { Paymaster } from 'sponsor-gas-simple-sdk/dist/model';
 
 interface PaymasterModalProps{
     paymasterList:Paymaster[]
