@@ -84,9 +84,9 @@ const WalletDashboard = () => {
     <article className="relative w-screen max-w-lg pb-10  flex flex-col space-y-2 overflow-y-scroll h-full">
 			<div className='flex items-center px-4 py-1 border-b'>
 					<div className="bg-green-600 justify-center flex  text-white items-center h-10 w-10 rounded-full ring-2 ring-white" >
-					KS
+					U
 					</div> 
-					<header className="p-4 flex font-bold text-lg">Karandeep Singh</header> 
+					<header className="p-4 flex font-bold text-lg">User</header> 
 					<label className="px-2">Account Type:</label>
 					<Dropdown options={accountTypes} setSelected={setSelectedAccountType} selected={selectedAccountType} />
 			</div>

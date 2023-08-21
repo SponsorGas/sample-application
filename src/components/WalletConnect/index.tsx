@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Dropdown, { DropdownOption } from "../Dropdown";
 import { useMetaMask } from "@/hooks/useMetaMask";
-import { config } from "@/lib/config";
+import { config, getBlockExplorerURLByChainId } from "@/lib/config";
 import { formatAddress } from "@/utils";
 
 export default function WalletConnect() {
@@ -24,7 +24,8 @@ export default function WalletConnect() {
   }
   const handleNetworkChange = (newNetwork:DropdownOption) =>{
     console.log(newNetwork)
-    connectMetaMask(newNetwork.value)
+    if(wallet.accounts.length > 0)
+      connectMetaMask(newNetwork.value)
     setSelected(newNetwork)
   }
 
@@ -42,7 +43,7 @@ export default function WalletConnect() {
   
   return (
     <div className='flex justify-center items-center w-full gap-4 '>
-      <div className="flex-1 ">
+      <div className="flex w-44 ">
         <Dropdown options={chains} setSelected={handleNetworkChange} selected={selected}  />
       </div>
       {wallet.accounts.length < 1 &&
@@ -54,17 +55,17 @@ export default function WalletConnect() {
       <>
         {wallet && wallet.accounts.length > 0 && (
           <>
-            <a href={`https://etherscan.io/address/${wallet.address}`}
+            <a href={`${getBlockExplorerURLByChainId(wallet.chainId)}/address/${wallet.address}`}
               target="_blank"
               title="Open in Block Explorer"
               className="text-sm font-semibold leading-6 text-gray-900"
             >
               {formatAddress(wallet.address)}
             </a>
-            |
+            {/* |
             <div className="text-sm font-semibold leading-6 text-gray-900">
               {wallet.balance} {nativeTokenSymbol}
-            </div>
+            </div> */}
           </>
         )}
       </>

@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import PaymastersGrid from '../PaymastersGrid'
-import { Paymaster} from '@/utils/sponsor_gas';
+import { Paymaster } from '../../../../sponsor-gas-sdk/dist/model';
 
 interface PaymasterModalProps{
     paymasterList:Paymaster[]
@@ -13,7 +13,6 @@ interface PaymasterModalProps{
 
 
 export default function PaymasterModal({isOpen,setOpen,paymasterList,setSelectPaymaster,selectedPaymaster}:PaymasterModalProps) {
-  
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10"  onClose={setOpen}>

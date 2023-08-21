@@ -21,8 +21,8 @@ const applications:ApplicationDropdownOption[] = [ {
   url:'/nft'
 },{
   id:'3',
-  name:"NAVH Pay",
-  value: <ApplicationLogo name='NAVH Pay' sponsor="SponsorGas" />,
+  name:"Sponsor Pay",
+  value: <ApplicationLogo name='Sponsor Pay' sponsor="SponsorGas" />,
   url:'/pay'
 }]
 
