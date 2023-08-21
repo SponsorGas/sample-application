@@ -3,7 +3,7 @@ import { formatAddress } from "@/utils";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import { StarIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { Paymaster } from "../../../../sponsor-gas-sdk/dist/model";
+import { Paymaster } from "sponsor-gas-simple-sdk/dist/model";
 
 interface PaymasterCardProps {
   paymaster: Paymaster;
