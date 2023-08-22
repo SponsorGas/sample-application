@@ -34,7 +34,7 @@ export function PaymasterCard({ paymaster, setSelectPaymaster, isSelected }: Pay
 		  </button>
 		</div>
 		<div className={`aspect-h-1 aspect-w-1 w-full border overflow-hidden rounded-2xl bg-white lg:aspect-none group-hover:opacity-75 lg:h-80 ${isFlipped ? "rotate-y-180" : ""}`}>
-		  <Image src={paymaster.image ?? '/sponsor_gas_defaultcover.png'} alt={`product.imageAlt`} width={500} height={400} className="h-full w-full object-cover object-center lg:h-full lg:w-full" />
+		  <Image src={paymaster.image ?? '/sponsor_gas_defaultcover.png'} alt={`Sponsor Image`} width={500} height={400} className="h-full w-full object-cover object-center lg:h-full lg:w-full" unoptimized/>
 		</div>
   
 		<div className={`absolute inset-x-0 bottom-0 flex flex-col mx-2 -my-6 items-center rounded-2xl text-white bg-gray-800 ${isFlipped ? "rotate-y-180" : ""}`}>
