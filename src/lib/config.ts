@@ -3,6 +3,7 @@ interface ChainConfig {
   entryPointContractAddress:string;
   ethStakingContractAddress: string;
   xSuperhackContractAddress:string;
+  navhHackerNFTContractAddress:string
   symbol: string;
   pimlicoChainValue:string;
   blockExplorer: string;
@@ -19,6 +20,7 @@ export const config: Config = {
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0xea68b3efbbf63bb837f36a90aa97df27bbf9b864',
     xSuperhackContractAddress:'',
+    navhHackerNFTContractAddress:'0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9',
     symbol: 'LineaETH',
     pimlicoChainValue:'linea-testnet',
     blockExplorer: 'https://explorer.goerli.linea.build',
@@ -29,21 +31,24 @@ export const config: Config = {
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0x7f829ab036fa3ac32928910152c78d93038dc3e2',
     xSuperhackContractAddress:'0x36d07d0b52eab491d714732c7cc79dc39e3ab373',
+    navhHackerNFTContractAddress:'',
     symbol: 'BaseETH',
     pimlicoChainValue:'base-goerli',
     blockExplorer: 'https://goerli.basescan.org',
     rpcUrl: 'https://goerli.base.org',
-  },
-  '0x1a4': {
-    name: 'Goerli Optimism',
-    entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
-    ethStakingContractAddress:'0xe6e61b4cb54ecfc67421b61bcdc5a566d91888ae',
-    xSuperhackContractAddress:'0x04f726034cebb6dabc6dc6a57f4abe0b342e02a1',
-    symbol: 'OptimismETH',
-    pimlicoChainValue:'optimism-goerli',
-    blockExplorer: 'https://goerli-optimism.etherscan.io',
-    rpcUrl: process.env.OPRIMISM_GOERLI_RPC!,
   }
+  // },
+  // '0x1a4': {
+  //   name: 'Goerli Optimism',
+  //   entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
+  //   ethStakingContractAddress:'0xe6e61b4cb54ecfc67421b61bcdc5a566d91888ae',
+  //   navhHackerNFTContractAddress:'',
+  //   xSuperhackContractAddress:'0x04f726034cebb6dabc6dc6a57f4abe0b342e02a1',
+  //   symbol: 'OptimismETH',
+  //   pimlicoChainValue:'optimism-goerli',
+  //   blockExplorer: 'https://goerli-optimism.etherscan.io',
+  //   rpcUrl: process.env.OPRIMISM_GOERLI_RPC!,
+  // }
 }
 
 export const isSupportedNetwork = (id: string) => {

@@ -89,6 +89,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
+      name: "NAVHHackerNFT",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.NAVHHackerNFT__factory>;
+    getContractFactory(
+      name: "XSuperhack",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.XSuperhack__factory>;
+    getContractFactory(
       name: "PaymasterApplicationsRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PaymasterApplicationsRegistry__factory>;
@@ -272,6 +280,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
+    getContractAt(
+      name: "NAVHHackerNFT",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.NAVHHackerNFT>;
+    getContractAt(
+      name: "XSuperhack",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.XSuperhack>;
     getContractAt(
       name: "PaymasterApplicationsRegistry",
       address: string,

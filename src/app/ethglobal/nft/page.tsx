@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import {  Contract, ethers } from "ethers";
-import xSuperhackNFT from './xSuperhackNFT.png'
+import xSuperhackNFT from './NAVHHackerNFT.png'
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { SimpleAccount } from '@/utils/simple_account';
@@ -12,9 +12,10 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
-import { StakingContract__factory, XSuperhack__factory } from '@/typechain-types';
+// import { NAVHHackerNFT_factory } from '@/typechain-types';
 import { SponsorGas } from 'sponsor-gas-simple-sdk';
 import { Paymaster } from 'sponsor-gas-simple-sdk/dist/model';
+import { NAVHHackerNFT__factory } from '@/typechain-types/factories/contracts/NAVHHackerNFT.sol';
 
 
 export interface UserOperation {
@@ -50,9 +51,9 @@ export default function NFT() {
   
   const nftContractAddress = useMemo(() => {
     if (wallet.chainId) {
-      return getNFTContractAddressByChainId(wallet.chainId);
+      return '0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9' //getNFTContractAddressByChainId(wallet.chainId); on linea chain
     }
-    return '';
+    return '0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9';
   }, [wallet.chainId]);
 
   
@@ -78,7 +79,7 @@ export default function NFT() {
     );
 
 		const fetchNFTData = async () => {
-      const contract = XSuperhack__factory.connect( nftContractAddress!, provider )
+      const contract = NAVHHackerNFT__factory.connect( nftContractAddress!, provider )
       let address=''
       try{
         if(selectedWalletType === 'EOA'){
@@ -147,13 +148,13 @@ export default function NFT() {
       window.ethereum as unknown as ethers.providers.ExternalProvider,
     )
     const signer = provider.getSigner()
-    const metadataFile = 'bafybeic2xgf4xjw745wjxuicknjhcn7hsxcwgyvndk64bvhboljp42wbje'
+    const metadataFile = 'bafybeihiawt2btyclrj7hvihmpfrqlf6pcje6qfmwxlydql3k3lsfc7u7m'
     if(selectedWalletType === 'SCW'){
       const simpleAccount = new SimpleAccount(signer)
       const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
       const to =  nftContractAddress!;
       const value = 0
-      const mintingCall = XSuperhack__factory.connect( nftContractAddress!,
+      const mintingCall = NAVHHackerNFT__factory.connect( nftContractAddress!,
                                 signer
                               ).interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
       const data = mintingCall
