@@ -6,19 +6,20 @@ import WalletConnect from '@/components/WalletConnect';
 import WalletDashboard from '@/components/WalletDashboard';
 import ApplicationDropdown, { ApplicationDropdownOption, ApplicationLogo } from '../Dropdown/ApplicationDropdown';
 import { usePathname, useRouter } from 'next/navigation';
-import { Router } from "next/router";
 
-const applications:ApplicationDropdownOption[] = [ {
-  id:'1',
-  name:"ETHGlobal Staking",
-  value: <ApplicationLogo name='ETHGlobal Staking' sponsor="SponsorGas" image='/ethglobal.png' />,
-  url:'/ethglobal/staking'
+const applications:ApplicationDropdownOption[] = [ 
+//   {
+//   id:'1',
+//   name:"ETHGlobal Staking",
+//   value: <ApplicationLogo name='ETHGlobal Staking' sponsor="SponsorGas" image='/ethglobal.png' />,
+//   url:'/ethglobal/staking'
 
-},{
+// },
+{
   id:'2',
-  name:"xSuperhack NFT",
-  value: <ApplicationLogo name='xSuperhack NFT' sponsor="SponsorGas" />,
-  url:'/ethglobal/nft'
+  name:"NAVHHacker NFT",
+  value: <ApplicationLogo name='NAVHHacker NFT' sponsor="SponsorGas" />,
+  url:'/nft'
 },{
   id:'3',
   name:"Sponsor Pay",

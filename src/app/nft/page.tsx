@@ -301,8 +301,8 @@ export default function NFT() {
       <div className='flex flex-col items-center w-full '>
         <div className="bg-white p-4 rounded-xl mb-4 flex flex-col items-center w-2/4">
           <Image className="h-2/6 w-auto rounded-full border-white" src={xSuperhackNFT} alt="xSuperhackNFT" />
-          <p className="text-md mb-2 text-center">Superhack the Superchain.Today, over 1000 developers embark on a week long journey to build</p>
-          <p className="text-md mb-2 text-center">{`what's fun, novel, experimental, or just plain needed for the Superchain.`}</p>
+          <p className="text-md mb-2 text-center">NAVH celebrates web3 developers, NFT artists, students, community builders, product specialists, and futurists, among others, empowering them to make a meaningful impact through innovation, blockchain, and collaboration. </p>
+          <p className="text-md mb-2 text-center">{`Whether you're a developer, a designer, an entrepreneur, or a visionary with an idea that's ready to shake things up, this hackathon is for you.`}</p>
           {wallet.accounts.length === 0 && <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 flex space-x-1" role="alert">
             <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" /> 
             <span>Connect account signer to mint .</span>
@@ -372,8 +372,8 @@ export default function NFT() {
             )}
           </div>}
         
-          <p className="text-xs mb-4">{`Supported networks:  Optimism, Base`}</p>
-          <p className="text-sm mb-2">{`Any questions? Don't hesitate to contact us on Discord or email.`}</p>
+          <p className="text-xs mb-4">{`Supported networks:  Linea`}</p>
+          {/* <p className="text-sm mb-2">{`Any questions? Don't hesitate to contact us on Discord or email.`}</p> */}
         </div>
 
          
