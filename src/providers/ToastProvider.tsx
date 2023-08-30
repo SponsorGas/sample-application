@@ -46,13 +46,13 @@ export function ToastProvider({ children }: ToastProviderProps) {
     <ToastContext.Provider value={contextValue}>
       <div style={{ position: 'relative' }}>
         {children}
-        <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 50 }}>
+        {toasts && toasts.length > 0 && (<div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 50 }}>
           <div style={{  padding: '0.5rem', borderRadius: '0.25rem' }}>
             {toasts.map((toast) => (
              <ToastMessage key={toast.id} toast={toast} removeToast={removeToast} />
             ))}
           </div>
-        </div>
+        </div>)}
       </div>
     </ToastContext.Provider>
 

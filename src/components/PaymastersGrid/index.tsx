@@ -1,6 +1,6 @@
 "use client"
 import { PaymasterCard } from "../PaymasterCard";
-import { Paymaster} from "sponsor-gas-simple-sdk/dist/model";
+import { Paymaster} from "sponsor-gas-sdk/dist/model";
 
 interface PraymasterGridProps{
   paymasterList:Paymaster[],

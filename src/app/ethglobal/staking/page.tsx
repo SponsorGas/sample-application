@@ -10,16 +10,16 @@ import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
-import {SponsorGas} from 'sponsor-gas-simple-sdk'
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { StakingContract__factory } from '@/typechain-types';
-import { Paymaster } from 'sponsor-gas-simple-sdk/dist/model';
+import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
 
 
 export default function Staking() {
 
   const { wallet } = useMetaMask()
+  const {getPaymasterAndData} = useSponsorGas()
   const [selectedWalletType,setSelectedWalletType] = useState<string>('EOA')
   const [stakingAmount, setStakingAmount] = useState<string>("___");
   const [hasStaked, setHasStaked] = useState<boolean>(false); // New state variable
@@ -114,8 +114,7 @@ export default function Staking() {
           // const applicationContractAddress = getContractAddressByChainId(chainId);
           // console.log(applicationContractAddress)
           if (chainId && stakingContractAddress) {
-            const sponsorGas = new SponsorGas()
-            const paymasters = await sponsorGas.getPaymasters(chainId, stakingContractAddress);
+            const paymasters = await getPaymasters(chainId, stakingContractAddress);
             console.log(paymasters)
             setPaymasterList(paymasters);
           } else {
@@ -189,8 +188,7 @@ export default function Staking() {
         const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
         const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
         const entryPointContractAddress = getEntryPointContractAddressByChainId(wallet.chainId)!// '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'
-        const sponsorGas = new SponsorGas()
-        const paymasterAndData = await sponsorGas.getPaymasterAndData(selectedPaymaster!,userOperation,wallet.chainId,entryPointContractAddress)
+        const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
         console.log(`PaymasterAndData: ${paymasterAndData}`)
         
         if (paymasterAndData){
@@ -293,8 +291,7 @@ export default function Staking() {
       const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
       const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
       const entryPointContractAddress = getEntryPointContractAddressByChainId(wallet.chainId)!// '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'
-      const sponsorGas = new SponsorGas()
-      const paymasterAndData = await sponsorGas.getPaymasterAndData(selectedPaymaster!,userOperation,wallet.chainId,entryPointContractAddress)
+      const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
       console.log(`PaymasterAndData: ${paymasterAndData}`)
         
         if (paymasterAndData){

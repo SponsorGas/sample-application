@@ -9,13 +9,13 @@ import { SimpleAccount__factory } from '@account-abstraction/contracts';
 import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
+import {  getBlockExplorerURLByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
-// import { NAVHHackerNFT_factory } from '@/typechain-types';
-import { SponsorGas } from 'sponsor-gas-simple-sdk';
-import { Paymaster } from 'sponsor-gas-simple-sdk/dist/model';
+import { useSponsorGas, getPaymasters }  from 'sponsor-gas-sdk';
+import { Paymaster } from 'sponsor-gas-sdk/dist/model';
 import { NAVHHackerNFT__factory } from '@/typechain-types/factories/contracts/NAVHHackerNFT.sol';
+import { useToast } from '@/providers/ToastProvider';
 
 
 export interface UserOperation {
@@ -35,9 +35,8 @@ export interface UserOperation {
 export default function NFT() {
 
   const { wallet } = useMetaMask()
-  // const {getPaymasterAndData,isChallengePending} = useSponsorGas()
+  const {getPaymasterAndData} = useSponsorGas()
   const [selectedWalletType,setSelectedWalletType] = useState<string>('EOA')
-  const [stakingAmount, setStakingAmount] = useState<string>("___");
   const [hasMinted, setHasMinted] = useState<boolean>(false); // New state variable
   const [scwAddress,setSCWAddress] = useState('')
   const [mintedCount,setMintedCount] = useState<string>("0");
@@ -47,7 +46,7 @@ export default function NFT() {
   const [paymasterList, setPaymasterList] = useState<Paymaster[]>([]);
   const [selectedPaymaster,setSelectedPaymaster] = useState<Paymaster>()
   const [paymasterModalIsOpen,setPaymasterModalIsOpen] = useState(false)
-  
+  const { addToast } = useToast();
   
   const nftContractAddress = useMemo(() => {
     if (wallet.chainId) {
@@ -56,8 +55,8 @@ export default function NFT() {
     return '0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9';
   }, [wallet.chainId]);
 
-  
-
+  let count = 1;
+  console.log(count++)
   useEffect(() => {
     const provider = new ethers.providers.Web3Provider(
       window.ethereum as unknown as ethers.providers.ExternalProvider
@@ -68,7 +67,9 @@ export default function NFT() {
       const [simpleAccountAddress] = await simpleAccount.getUserSimpleAccountAddress();
       setSCWAddress(simpleAccountAddress);
     }
+    console.log(`useEffect fetchSCWAddress`)
     if(wallet.accounts.length > 0)
+      console.log(`useEffect fetchSCWAddress executing`)
       fetchSCWAddress()
   }, [wallet]);
 
@@ -96,8 +97,9 @@ export default function NFT() {
       
 			
 		};
-
+    console.log(`useEffect fetchNFTData`)
     if(wallet.accounts.length > 0 && nftContractAddress  && nftContractAddress != ''){
+      console.log(`useEffect fetchNFTData executing`)
       fetchNFTData();
       setSelectedPaymaster(undefined)
     }
@@ -114,8 +116,10 @@ export default function NFT() {
           // const applicationContractAddress = getContractAddressByChainId(chainId);
           // console.log(applicationContractAddress)
           if (chainId && nftContractAddress) {
-            const sponsorGas = new SponsorGas()
-            const paymasters = await sponsorGas.getPaymasters(chainId, nftContractAddress);
+            // const sponsorGas = new SponsorGas()
+            console.log(`fetching paymasters`)
+            console.log(`BASE_API_URL ${process.env.SPONSOR_GAS_BACKEND}`)
+            const paymasters = await getPaymasters(chainId, nftContractAddress);
             console.log(paymasters)
             setPaymasterList(paymasters);
           } else {
@@ -128,112 +132,130 @@ export default function NFT() {
         setLoadingPaymaster(false);
       }
     };
-    // console.log(wallet.chainId)
+    console.log(`useEffect fetchRegisteredPaymaster`)
     if(wallet.accounts.length > 0 && nftContractAddress  && nftContractAddress != ''){
       fetchRegisteredPaymaster();
+      console.log(`useEffect fetchRegisteredPaymaster executing`)
     }else{
+      console.log(`useEffect fetchRegisteredPaymaster -> setLoadingPaymaster`)
       setLoadingPaymaster(false)
     }
     
-  }, [nftContractAddress, wallet]);
+  }, [ nftContractAddress, wallet]);
 
   const handleSelectPaymaster = () =>{
     setPaymasterModalIsOpen(true);
   }
 
   const handleMint = async () => {
-    setLoading(true)
     // Implement stake functionality using ethers.js
-    const provider = new ethers.providers.Web3Provider(
-      window.ethereum as unknown as ethers.providers.ExternalProvider,
-    )
-    const signer = provider.getSigner()
-    const metadataFile = 'bafybeihiawt2btyclrj7hvihmpfrqlf6pcje6qfmwxlydql3k3lsfc7u7m'
-    if(selectedWalletType === 'SCW'){
-      const simpleAccount = new SimpleAccount(signer)
-      const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
-      const to =  nftContractAddress!;
-      const value = 0
-      const mintingCall = NAVHHackerNFT__factory.connect( nftContractAddress!,
-                                signer
-                              ).interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
-      const data = mintingCall
-      console.log(`Mint call data: ${data}`)
-      const simpleAccountContract = SimpleAccount__factory.connect(
-        simpleAccountAddress!,
-        signer,
+    try{
+      const provider = new ethers.providers.Web3Provider(
+        window.ethereum as unknown as ethers.providers.ExternalProvider,
       )
-
-      const callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
-      console.log("Generated callData:", callData)
-      // FILL OUT REMAINING USER OPERATION VALUES
-      const gasPrice = await signer.getGasPrice()
-      console.log(`Checking Nonce of: ${simpleAccountAddress}`)
-
-      if (provider == null) throw new Error('must have entryPoint to autofill nonce')
-      const c = new Contract(simpleAccountAddress!, [`function getNonce() view returns(uint256)`], provider)
-      const nonceValue = await getNonceValue(c)
-      console.log(nonceValue)
-      const userOperation = {
+      const signer = provider.getSigner()
+      const metadataFile = 'bafybeihiawt2btyclrj7hvihmpfrqlf6pcje6qfmwxlydql3k3lsfc7u7m'
+      if(selectedWalletType === 'SCW'){
+        const simpleAccount = new SimpleAccount(signer)
+        const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
+        const to =  nftContractAddress!;
+        const value = ethers.utils.parseEther('0')
+        const mintingCall = NAVHHackerNFT__factory.connect( nftContractAddress!,
+                                  signer
+                                ).interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
+        const data = mintingCall
+        console.log(`Mint call data: ${data}`)
+        const simpleAccountContract = SimpleAccount__factory.connect(
+          simpleAccountAddress!,
+          signer,
+        )
+        let callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
+        console.log("Generated callData:", callData)
+  
+        // FILL OUT REMAINING USER OPERATION VALUES
+        const gasPrice = await signer.getGasPrice()
+        console.log(`Checking Nonce of: ${simpleAccountAddress}`)
+  
+        if (provider == null) throw new Error('must have entryPoint to autofill nonce')
+        const c = new Contract(simpleAccountAddress!, [`function getNonce() view returns(uint256)`], provider)
+        const nonceValue = await getNonceValue(c)
+        console.log(nonceValue)
+        const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
+        const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
+        const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`
+        const pimlicoProvider = new ethers.providers.StaticJsonRpcProvider(pimlicoEndpoint)
+        const entryPointContractAddress = getEntryPointContractAddressByChainId(wallet.chainId)!// '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'
+        const userOperation = {
           sender: simpleAccountAddress,
           nonce:hexlify(nonceValue),
           initCode:nonceValue === 0?initCode:'0x',
           callData,
-          callGasLimit: ethers.utils.hexlify(100_000), // hardcode it for now at a high value
+          callGasLimit: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
           verificationGasLimit: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
-          preVerificationGas: ethers.utils.hexlify(50_000), // hardcode it for now at a high value
+          preVerificationGas: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
           maxFeePerGas: ethers.utils.hexlify(gasPrice),
           maxPriorityFeePerGas: ethers.utils.hexlify(gasPrice),
           paymasterAndData: "0x",
           signature: "0x"
-      }
-        const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
-        const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
-        const entryPointContractAddress = getEntryPointContractAddressByChainId(wallet.chainId)!// '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'
-        const sponsorGas = new SponsorGas()
-        const paymasterAndData = await sponsorGas.getPaymasterAndData(selectedPaymaster!,userOperation,wallet.chainId,entryPointContractAddress)
-        console.log(`PaymasterAndData: ${paymasterAndData}`)
-        
-        if (paymasterAndData){
-          userOperation.paymasterAndData = paymasterAndData
-          const userOpHash = await simpleAccount._entryPoint.getUserOpHash(userOperation)
-          const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
-          console.log(ethers.utils.verifyMessage(ethers.utils.arrayify(userOpHash),signature))
-          console.log(await signer.getAddress())
-          userOperation.signature = signature
-          
-          console.log("UserOperation signature:", signature)
-          console.log(userOperation)
-          // SUBMIT THE USER OPERATION TO BE BUNDLED
-          const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`
-          const pimlicoProvider = new ethers.providers.StaticJsonRpcProvider(pimlicoEndpoint)
-          const userOperationHash = await pimlicoProvider.send("eth_sendUserOperation", [
-            userOperation,
-            entryPointContractAddress // ENTRY_POINT_ADDRESS
-          ])
-
-          console.log("UserOperation hash:", userOperationHash)
-          // let's also wait for the userOperation to be included, by continually querying for the receipts
-          console.log("Querying for receipts...")
-          let receipt = null
-          while (receipt === null) {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-            receipt = await pimlicoProvider.send("eth_getUserOperationReceipt", [
-            userOperationHash,
-          ]);
-            console.log(receipt === null ? "Still waiting..." : receipt)
-          }
-
-          const txHash = receipt.receipt.transactionHash
-          const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
-          console.log(wallet.chainId, blockExplorer)
-          console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
-          } else {
-          console.log('Window was closed without data.');
-          setLoading(false)
         }
-      }
+      
+          const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
+          setLoading(true)
+          
+          console.log(`PaymasterAndData promise: ${paymasterAndData}`)
+          
+          if (paymasterAndData){
+            userOperation.paymasterAndData = paymasterAndData
+
+            const userOpHash = await simpleAccount._entryPoint.getUserOpHash(userOperation)
+            const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
+            console.log(ethers.utils.verifyMessage(ethers.utils.arrayify(userOpHash),signature))
+            console.log(await signer.getAddress())
+            userOperation.signature = signature
+            
+            console.log("UserOperation signature:", signature)
+            console.log(userOperation)
+
+            const estimationResult = await pimlicoProvider.send(  "eth_estimateUserOperationGas",  [userOperation, entryPointContractAddress]) 
+            const preVerificationGas = estimationResult.preVerificationGas
+            const verificationGasLimit = estimationResult.verificationGasLimit
+            const callGasLimit = estimationResult.callGasLimit
+            console.log(estimationResult)
+            // SUBMIT THE USER OPERATION TO BE BUNDLED
+            const userOperationHash = await pimlicoProvider.send("eth_sendUserOperation", [
+              userOperation,
+              entryPointContractAddress // ENTRY_POINT_ADDRESS
+            ])
+  
+            console.log("UserOperation hash:", userOperationHash)
+            // let's also wait for the userOperation to be included, by continually querying for the receipts
+            console.log("Querying for receipts...")
+            let receipt = null
+            while (receipt === null) {
+              await new Promise((resolve) => setTimeout(resolve, 1000))
+              receipt = await pimlicoProvider.send("eth_getUserOperationReceipt", [
+              userOperationHash,
+            ]);
+              console.log(receipt === null ? "Still waiting..." : receipt)
+            }
+  
+            const txHash = receipt.receipt.transactionHash
+            const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
+            console.log(wallet.chainId, blockExplorer)
+            console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
+            addToast("Successfully Submitted User Operation",'success')
+            } else {
+            console.log('Invalid PaymasterAndData.');
+            
+          }
+        }
+
+    }catch(e){
+      addToast("Error Occurred.",'error')
+    }finally{
       setLoading(false)
+    }
+   
   };
   const getNonceValue = async (c:Contract) => {
     let nonceValue = 0;
@@ -253,7 +275,7 @@ export default function NFT() {
 
   if(isLoading){
     return <Transition.Root show={isLoading} as={Fragment}>
-    <Dialog as="div" className="relative z-10" onClose={()=>{}}>
+    <Dialog as="div" className="relative z-10" onClose={()=>setLoading(false)}>
       <Transition.Child
         as={Fragment}
         enter="ease-out duration-300"
@@ -282,7 +304,7 @@ export default function NFT() {
                 <div className="sm:flex sm:items-start">
                 <div className='flex flex-col items-center w-full '>
                     <HorizontalLoading />
-                    <p>Waiting for challenge Completion</p>
+                    <p>Waiting for tx completion...</p>
                 
                 </div>
                 </div>
@@ -362,7 +384,7 @@ export default function NFT() {
               </div>
               
             </div>
-            {(!hasMinted && selectedPaymaster ) && (
+            {(selectedPaymaster ) && (
               <button
                 className="bg-blue-500 text-white  py-2 px-4 rounded-md mr-2"
                 onClick={handleMint}

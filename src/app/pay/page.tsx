@@ -6,16 +6,16 @@ import { SimpleAccount__factory } from "@account-abstraction/contracts";
 import { Contract, ethers } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import React, { FormEvent, Fragment, useEffect, useState } from "react";
-import { SponsorGas } from "sponsor-gas-simple-sdk";
 import WalletConnect from "@/components/WalletConnect";
-import { ArrowLeftCircleIcon, ArrowRightCircleIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import {  ArrowRightIcon } from "@heroicons/react/24/outline";
 import PaymasterModal from "@/components/PaymasterModal";
 import { formatAddress, formatBalance } from "@/utils";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { useToast } from "@/providers/ToastProvider";
 import { Dialog, Transition } from "@headlessui/react";
-import { Paymaster } from "sponsor-gas-simple-sdk/dist/model";
+import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
+
 
 
 export default function Pay() {
@@ -29,8 +29,8 @@ export default function Pay() {
 	const fetchRegisteredPaymaster = async (chainId:string,applicationIdentifier:string) => {
 		try {
 			if(chainId != '' && chainId){
-					const sponsorGas = new SponsorGas()
-					const paymasters = await sponsorGas.getPaymasters(chainId,applicationIdentifier);
+				console.log('fetching paymasters')
+					const paymasters = await getPaymasters(chainId,applicationIdentifier);
 					return paymasters
 				}
 		} catch (error) {
@@ -130,6 +130,7 @@ interface SponsorPayFormProps{
 
 const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) =>{
 	const { wallet } = useMetaMask()
+  const {getPaymasterAndData} = useSponsorGas()
   const [amount, setAmount] = useState('');
   const [recipient, setRecipient] = useState('');
 	const [isLoading,setLoading] = useState(false)
@@ -200,9 +201,9 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 						nonce:hexlify(nonceValue),
 						initCode:nonceValue === 0?initCode:'0x',
 						callData,
-						callGasLimit: ethers.utils.hexlify(100_000), // hardcode it for now at a high value
+						callGasLimit: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
 						verificationGasLimit: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
-						preVerificationGas: ethers.utils.hexlify(50_000), // hardcode it for now at a high value
+						preVerificationGas: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
 						maxFeePerGas: ethers.utils.hexlify(gasPrice),
 						maxPriorityFeePerGas: ethers.utils.hexlify(gasPrice),
 						paymasterAndData: "0x",
@@ -211,8 +212,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 					const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
 					const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
 					const entryPointContractAddress = getEntryPointContractAddressByChainId(wallet.chainId)!// '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'
-					const sponsorGas = new SponsorGas()
-					const paymasterAndData = await sponsorGas.getPaymasterAndData(selectedPaymaster!,userOperation,wallet.chainId,entryPointContractAddress)
+					const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
 					console.log(`PaymasterAndData: ${paymasterAndData}`)
 					
 					if (paymasterAndData){
