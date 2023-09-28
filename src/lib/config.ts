@@ -44,7 +44,7 @@ export const config: Config = {
     name: 'Goerli Optimism',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0xe6e61b4cb54ecfc67421b61bcdc5a566d91888ae',
-    navhHackerNFTContractAddress:'',
+    navhHackerNFTContractAddress:'0x1d1869Df5aFE341a0D5a2148B80f131Ed4d0BB1A',
     xSuperhackContractAddress:'0x04f726034cebb6dabc6dc6a57f4abe0b342e02a1',
     simpleZkSessionAccountFactory:'0x9EC308cce7E7baa370CC1F76179A57e0c333CA0B',
     symbol: 'OptimismETH',
