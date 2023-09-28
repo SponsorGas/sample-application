@@ -4,15 +4,14 @@ import {  Contract, ethers } from "ethers";
 import application_accepted from './application_accepted.png'
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
-import { SimpleAccount } from '@/utils/simple_account';
-import { SimpleAccount__factory } from '@account-abstraction/contracts';
+import { SimpleAccount } from '@/utils/simpleAccount';
 import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
-import { StakingContract__factory } from '@/typechain-types';
+import { SimpleAccount__factory, StakingContract__factory } from '@/typechain-types';
 import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
 
 

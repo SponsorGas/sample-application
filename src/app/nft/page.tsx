@@ -4,8 +4,7 @@ import {  Contract, ethers } from "ethers";
 import xSuperhackNFT from './NAVHHackerNFT.png'
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
-import { SimpleAccount } from '@/utils/simple_account';
-import { SimpleAccount__factory } from '@account-abstraction/contracts';
+import { SimpleAccount } from '@/utils/simpleAccount';
 import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -14,23 +13,8 @@ import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { useSponsorGas, getPaymasters }  from 'sponsor-gas-sdk';
 import { Paymaster } from 'sponsor-gas-sdk/dist/model';
-import { NAVHHackerNFT__factory } from '@/typechain-types/factories/contracts/NAVHHackerNFT.sol';
 import { useToast } from '@/providers/ToastProvider';
-
-
-export interface UserOperation {
-  sender: string;
-  nonce: string;
-  initCode: string;
-  callData: string;
-  callGasLimit: string;
-  verificationGasLimit: string;
-  preVerificationGas: string;
-  maxFeePerGas: string;
-  maxPriorityFeePerGas: string;
-  paymasterAndData: string;
-  signature: string;
-}
+import { NAVHHackerNFT__factory, SimpleAccount__factory } from '@/typechain-types';
 
 export default function NFT() {
 

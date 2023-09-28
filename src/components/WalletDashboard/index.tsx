@@ -5,7 +5,7 @@ import { formatAddress, formatBalance, formatChainAsNum } from '@/utils';
 import Dropdown, { DropdownOption } from '../Dropdown';
 import Image from 'next/image';
 import { ethers } from 'ethers';
-import { SimpleAccount } from '@/utils/simple_account';
+import { SimpleAccount } from '@/utils/simpleAccount';
 import { parseEther } from 'ethers/lib/utils';
 
 interface TabProps {
@@ -43,8 +43,6 @@ const WalletDashboard = () => {
   
 
   useEffect(() => {
-		let isMounted = true; // Flag to track component mount status
-	
 		const fetchData = async () => {
 			if (selectedAccountType.id === 'SCW') {
 				const provider = new ethers.providers.Web3Provider(
@@ -53,28 +51,20 @@ const WalletDashboard = () => {
 				const signer = provider.getSigner();
 				const simpleAccount = new SimpleAccount(signer);
 				const [simpleAccountAddress] = await simpleAccount.getUserSimpleAccountAddress();
-				
-				if (isMounted) {
-					setSCWAddress(simpleAccountAddress);
-					setSCWBalance(formatBalance((await provider.getBalance(simpleAccountAddress)).toString()));
-				}
+				setSCWAddress(simpleAccountAddress);
+				setSCWBalance(formatBalance((await provider.getBalance(simpleAccountAddress)).toString()));
 			}
 	
 			if (wallet && wallet.accounts.length > 0 && wallet.chainId !== '') {
 				const cc = Object.entries(config).find(([chainId, chainConfig]) => chainId === wallet.chainId);
 				if (cc) {
-					if (isMounted) {
 						setNativeTokenSymbol(cc[1].symbol);
-					}
 				}
 			}
 		};
-	
-		fetchData();
-	
-		return () => {
-			isMounted = false; // Clean up when component unmounts
-		};
+		if(wallet.accounts.length > 0){
+			fetchData();
+		}
 	}, [selectedAccountType.id, wallet]);
 	
   

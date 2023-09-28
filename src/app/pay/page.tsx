@@ -1,8 +1,7 @@
 'use client'
 import { useMetaMask } from "@/hooks/useMetaMask";
 import { getBlockExplorerURLByChainId, getEntryPointContractAddressByChainId, getPimlicoChainNameByChainId } from "@/lib/config";
-import { SimpleAccount } from "@/utils/simple_account";
-import { SimpleAccount__factory } from "@account-abstraction/contracts";
+import { SimpleAccount } from "@/utils/simpleAccount";
 import { Contract, ethers } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import React, { FormEvent, Fragment, useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { useToast } from "@/providers/ToastProvider";
 import { Dialog, Transition } from "@headlessui/react";
 import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
+import { SimpleAccount__factory } from "@/typechain-types";
 
 
 

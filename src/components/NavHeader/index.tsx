@@ -15,6 +15,7 @@ const applications:ApplicationDropdownOption[] = [
 //   url:'/ethglobal/staking'
 
 // },
+
 {
   id:'2',
   name:"NAVHHacker NFT",
@@ -25,7 +26,12 @@ const applications:ApplicationDropdownOption[] = [
   name:"Sponsor Pay",
   value: <ApplicationLogo name='Sponsor Pay' sponsor="SponsorGas" />,
   url:'/pay'
-}]
+},{
+  id:'4',
+  name:"NAVHHacker NFT- zkAccount",
+  value: <ApplicationLogo name='NAVHHacker NFT' sponsor="SponsorGas" />,
+  url:'/nft/simpleZkSessionAccount'
+},]
 
 export default function NavHeader() {
 

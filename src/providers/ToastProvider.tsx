@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface Toast {
   id: number;
   message: string;
-  timestamp:number;
+  timestamp: number;
   type: 'success' | 'error' | 'info';
 }
 
@@ -36,6 +36,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const removeToast = (id: number) => {
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   };
+
   const contextValue = {
     toasts,
     addToast,
@@ -46,18 +47,27 @@ export function ToastProvider({ children }: ToastProviderProps) {
     <ToastContext.Provider value={contextValue}>
       <div style={{ position: 'relative' }}>
         {children}
-        {toasts && toasts.length > 0 && (<div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 50 }}>
-          <div style={{  padding: '0.5rem', borderRadius: '0.25rem' }}>
+        {toasts.length > 0 && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '1rem',
+              right: '1rem',
+              zIndex: 50,
+              display: 'flex',
+              flexDirection: 'column-reverse', // Reverse order of toasts for smooth removal
+            }}
+          >
             {toasts.map((toast) => (
-             <ToastMessage key={toast.id} toast={toast} removeToast={removeToast} />
+              <ToastMessage key={toast.id} toast={toast} removeToast={removeToast} />
             ))}
           </div>
-        </div>)}
+        )}
       </div>
     </ToastContext.Provider>
-
   );
 }
+
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
@@ -66,15 +76,15 @@ export const useToast = () => {
   return context;
 };
 
-
 interface ToastMessageProps {
   toast: Toast;
-  removeToast: (id:number) => void;
+  removeToast: (id: number) => void;
 }
 
 export const ToastMessage: React.FC<ToastMessageProps> = ({ toast, removeToast }) => {
-  const [progressWidth, setProgressWidth] = useState('90%');
-  const timeToLive = 10000
+  const [progressWidth, setProgressWidth] = useState('100%');
+  const timeToLive = 10000;
+
   useEffect(() => {
     const interval = setInterval(() => {
       const elapsedTime = Date.now() - toast.timestamp;
@@ -92,19 +102,27 @@ export const ToastMessage: React.FC<ToastMessageProps> = ({ toast, removeToast }
     };
   }, [removeToast, toast]);
 
+  const toastBgColor = (toastType:string) =>{
+    if(toastType === 'success'){
+      return '#48bb78';
+    }else if(toastType === 'error'){
+      return '#f56565';
+    }else{
+      return '#4299e1'
+    }
+  }
   return (
     <div key={toast.id}>
-      
       <div
         style={{
-          backgroundColor: toast.type === 'success' ? '#48bb78' : toast.type === 'error' ? '#f56565' : '#4299e1',
+          backgroundColor: toastBgColor(toast.type),
           color: 'white',
           padding: '0.5rem',
           paddingTop: '0.20rem',
           borderRadius: '0.25rem',
           marginBottom: '0.25rem',
           display: 'flex',
-          flexDirection: 'column' ,
+          flexDirection: 'column',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
@@ -119,22 +137,21 @@ export const ToastMessage: React.FC<ToastMessageProps> = ({ toast, removeToast }
             }}
           ></div>
         </div>
-        <div 
-        style={{
-          paddingTop: '0.20rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
+        <div
+          style={{
+            paddingTop: '0.20rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%', // Added width for consistent alignment
+          }}
+        >
           <span>{toast.message}</span>
           <button onClick={() => removeToast(toast.id)}>
             <XMarkIcon className="w-5 h-5 text-gray-300" />
           </button>
         </div>
       </div>
-      
     </div>
   );
 };
-
- 

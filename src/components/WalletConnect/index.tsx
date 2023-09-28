@@ -5,13 +5,13 @@ import { config, getBlockExplorerURLByChainId } from "@/lib/config";
 import { formatAddress } from "@/utils";
 
 export default function WalletConnect() {
-  const { wallet, isConnecting, connectMetaMask, sdk, sdkConnected } = useMetaMask()
+  const { wallet,  connectMetaMask,} = useMetaMask()
   const chains: DropdownOption[] = Object.entries(config).map(([chainId, chainConfig]) => ({
     'id': chainId,
     'name': chainConfig.name,
     'value': chainId,
   }));
-
+  
   const [nativeTokenSymbol,setNativeTokenSymbol] = useState("ETH")
   
   // Set a default network based on the networkId if available, otherwise, set to the first chain
@@ -30,6 +30,9 @@ export default function WalletConnect() {
   }
 
   useEffect(()=>{
+    console.log(config)
+    console.log(chains)
+    console.log('WalletConnect')
     if(wallet.accounts.length > 0 && wallet.chainId!=''){
       const connectedNetwork = chains.find(chain => chain.value === wallet.chainId);
       connectedNetwork && setSelected(connectedNetwork)
@@ -38,7 +41,6 @@ export default function WalletConnect() {
     if(cc){
       setNativeTokenSymbol(cc[1].symbol)
     }
-    console.log(wallet)
   },[wallet,])
   
   return (
