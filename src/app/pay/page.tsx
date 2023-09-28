@@ -167,8 +167,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 	const handleSubmit =  async (e:FormEvent) => {
     e.preventDefault();
 		try{
-			 // Implement stake functionality using ethers.js
-			 setLoading(true)
+			
 			 const provider = new ethers.providers.Web3Provider(
 				 window.ethereum as unknown as ethers.providers.ExternalProvider,
 			 )
@@ -177,10 +176,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 				const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
 				const to =  recipient!;
 				const value = ethers.utils.parseEther(amount)
-			//  const stakingCall = StakingContract__factory.connect( stakingContractAddress!, signer  ).interface.encodeFunctionData("stake")
 				const data = "0x"//"0x68656c6c6f" // "hello" encoded to utf-8 bytes
-			//  const data = stakingCall
-				// console.log(`Stake call data: ${data}`)
 				const simpleAccountContract = SimpleAccount__factory.connect(
 					simpleAccountAddress!,
 					signer,
@@ -216,6 +212,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 					console.log(`PaymasterAndData: ${paymasterAndData}`)
 					
 					if (paymasterAndData){
+						setLoading(true)
 						userOperation.paymasterAndData = paymasterAndData
 						const userOpHash = await simpleAccount._entryPoint.getUserOpHash(userOperation)
 						const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
