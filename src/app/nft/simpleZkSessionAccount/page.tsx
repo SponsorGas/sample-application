@@ -7,7 +7,7 @@ import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { defaultAbiCoder, hexlify} from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
-import {  getBlockExplorerURLByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
+import {  getBlockExplorerURLByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { useSponsorGas, getPaymasters }  from 'sponsor-gas-sdk';
@@ -40,9 +40,9 @@ export default function NFT() {
   
   const nftContractAddress = useMemo(() => {
     if (wallet.chainId) {
-      return '0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9' //getNFTContractAddressByChainId(wallet.chainId); on linea chain
+      return getNFTContractAddressByChainId(wallet.chainId);
     }
-    return '0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9';
+    return '0x';
   }, [wallet.chainId]);
 
   const handleModalClose = () => {
