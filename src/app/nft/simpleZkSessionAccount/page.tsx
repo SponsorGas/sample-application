@@ -257,7 +257,7 @@ export default function NFT() {
           simpleAccountAddress!,
           signer,
         )
-        const session =  await simpleZkSessionAccountContract.getSessionForApplication(nftContractAddress);
+        const session =  await simpleZkSessionAccountContract.getSessionForApplication(nftContractAddress!);
         console.log(session);
         let callData = simpleZkSessionAccountContract.interface.encodeFunctionData("execute", [to, value,data])
         console.log("Generated callData:", callData)
