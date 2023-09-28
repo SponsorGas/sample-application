@@ -127,7 +127,7 @@ export default function NFT() {
       )
       
       console.log(session)
-      let callData = simpleZkAccountContract.interface.encodeFunctionData("setSessionForApplication",[nftContractAddress,session])
+      let callData = simpleZkAccountContract.interface.encodeFunctionData("setSessionForApplication",[nftContractAddress!,session])
       console.log(callData)
 
       const gasPrice = await signer.getGasPrice()
