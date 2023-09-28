@@ -1,34 +1,52 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# SponsorGas Sample Application
 
-## Getting Started
+Welcome to the SponsorGas Sample Application! This repository showcases practical scenarios illustrating the implementation of SponsorGas integration in various use cases. SponsorGas is a service that allows users to perform actions on the Ethereum blockchain without worrying about gas fees, courtesy of sponsors.
 
-First, run the development server:
+## How to Use
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+Each use case includes a demo link that you can follow to experience the SponsorGas platform and Pimlico infrastructure integration in action. Feel free to explore and experiment with these demos to understand how SponsorGas can simplify blockchain interactions for users.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Use Cases
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### 1. Stake ETH for ETHGlobal Hackathon
 
-## Learn More
+- **Demo Link:** [Stake ETH for ETHGlobal Hackathon Demo](https://github-production-user-asset-6210df.s3.amazonaws.com/90941366/260313201-e01ad927-7448-44e6-b50e-c804c13343b7.mp4)
+  
+Users can stake ETH to participate in an upcoming event, such as an ETHGlobal hackathon, without the burden of gas fees. To participate:
 
-To learn more about Next.js, take a look at the following resources:
+- Users need to fulfill certain criteria set by the sponsor (e.g., watching a video or answering a question).
+- After meeting the criteria, users can stake their ETH without incurring gas fees, thanks to SponsorGas.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Sponsor Pay: Transfer ETH on Linea
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- **Tryout:** [Sponsor Pay: Transfer ETH on Linea](https://sample-application-kannusingh.vercel.app/pay)
+  
+In this scenario, users access the "Sponsor Pay" application to send ETH. The process involves:
 
-## Deploy on Vercel
+- Users accessing the "Sponsor Pay" application.
+- Users meeting specific criteria established by the sponsor.
+- Upon successfully validating the sponsor's criteria, users can seamlessly send ETH without gas fees, courtesy of SponsorGas.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. NAVHHacker NFT: Mint NAVHHacker NFT on Linea
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **Tryout:** [NAVHHacker NFT: Mint NAVHHacker NFT on Linea](https://sample-application-kannusingh.vercel.app/nft)
+  
+In this use case, users access the "NAVHHacker NFT" application, which is integrated with SponsorGas. The process includes:
+
+- Users meeting specific criteria established by the sponsor.
+- Upon successfully validating the sponsor's criteria, users can seamlessly mint an NFT without incurring gas fees, thanks to SponsorGas.
+
+### 4. NAVHHacker NFT with zkAccount (zkSession key): Mint NAVHHacker NFT on Linea
+
+- **Tryout:** [NAVHHacker NFT with zkAccount: Mint NAVHHacker NFT on Linea](https://sample-application-kannusingh.vercel.app/nft/simpleZkSessionAccount)
+  
+This use case extends the "NAVHHacker NFT" application by adding zkAccount integration, which is compatible with ERC4337. Users can:
+
+- Access the "NAVHHacker NFT - with zkAccount" application, which is integrated with the Pimlico Verifying Paymaster.
+- Seamlessly mint an NFT without incurring gas fees upon successfully validating the sponsor's criteria, thanks to SponsorGas.
+
+
+---
+
+**Connect :** Discord: kannu#2618 Telegram: kannusinggh
