@@ -127,6 +127,8 @@ export default function NFT() {
       )
       
       console.log(session)
+      console.log(wallet.chainId)
+      console.log(nftContractAddress)
       let callData = simpleZkAccountContract.interface.encodeFunctionData("setSessionForApplication",[nftContractAddress!,session])
       console.log(callData)
 

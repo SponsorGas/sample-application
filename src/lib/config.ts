@@ -97,7 +97,7 @@ export const getNFTContractAddressByChainId = (chainId: string): string | undefi
   const chainConfig = config[chainId];
   
   if (chainConfig && isSupportedNetwork(chainId)) {
-    return chainConfig.xSuperhackContractAddress;
+    return chainConfig.navhHackerNFTContractAddress;
   } 
 }
 export const getBlockExplorerURLByChainId = (chainId: string): string | undefined => {
