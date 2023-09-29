@@ -44,7 +44,7 @@ In this use case, users access the "NAVHHacker NFT" application, which is integr
 This use case extends the "NAVHHacker NFT" application by adding zkAccount integration, which is compatible with ERC4337. Users can:
 
 - Access the "NAVHHacker NFT - with zkAccount" application, which is integrated with the Pimlico Verifying Paymaster.
-- Seamlessly mint an NFT without incurring gas fees upon successfully validating the sponsor's criteria, thanks to SponsorGas.
+- Seamlessly mint an NFT without incurring gas fees upon successfully validating the sponsor's criteria, thanks to Pimlico Verifying Paymaster.
 
 
 ---
