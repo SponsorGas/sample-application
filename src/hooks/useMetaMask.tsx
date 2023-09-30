@@ -123,12 +123,12 @@ export const MetaMaskContextProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const clientSDK = new MetaMaskSDK({
       useDeeplink: false,
-      communicationServerUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
+      // communicationServerUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
       // autoConnect: {
       //   enable: true
       // },
       dappMetadata: {
-        name: "NFT Tickets",
+        name: "Sample Application",
         url: window.location.host,
       },
       logging: {

@@ -2,7 +2,7 @@ interface ChainConfig {
   name: string;
   entryPointContractAddress:string;
   ethStakingContractAddress: string;
-  xSuperhackContractAddress:string;
+  demoNFTContractAddress:string;
   navhHackerNFTContractAddress:string
   simpleZkSessionAccountFactory:string
   symbol: string;
@@ -20,7 +20,7 @@ export const config: Config = {
     name: 'Goerli Linea',
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0xea68b3efbbf63bb837f36a90aa97df27bbf9b864',
-    xSuperhackContractAddress:'',
+    demoNFTContractAddress:'0x1230459c8349E3c1020DfD9637fF02b18eb509e8',
     navhHackerNFTContractAddress:'0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9',
     simpleZkSessionAccountFactory:'0x1DFb3Fc1155D4564FEfcf3d1b67cDdc2C2867f22',
     symbol: 'LineaETH',
@@ -32,7 +32,7 @@ export const config: Config = {
   //   name: 'Goerli Base',
   //   entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
   //   ethStakingContractAddress:'0x7f829ab036fa3ac32928910152c78d93038dc3e2',
-  //   xSuperhackContractAddress:'0x36d07d0b52eab491d714732c7cc79dc39e3ab373',
+  //   demoNFTContractAddress:'',
   //   navhHackerNFTContractAddress:'',
   //   simpleZkSessionAccountFactory:'',
   //   symbol: 'BaseETH',
@@ -45,7 +45,7 @@ export const config: Config = {
     entryPointContractAddress:'0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
     ethStakingContractAddress:'0xe6e61b4cb54ecfc67421b61bcdc5a566d91888ae',
     navhHackerNFTContractAddress:'0x1d1869Df5aFE341a0D5a2148B80f131Ed4d0BB1A',
-    xSuperhackContractAddress:'0x04f726034cebb6dabc6dc6a57f4abe0b342e02a1',
+    demoNFTContractAddress:'0xCb4AcACe7De55D13e5979C4Ad4205f1fc818af1f',
     simpleZkSessionAccountFactory:'0x9EC308cce7E7baa370CC1F76179A57e0c333CA0B',
     symbol: 'OptimismETH',
     pimlicoChainValue:'optimism-goerli',
@@ -93,11 +93,18 @@ export const getContractAddressByChainId = (chainId: string): string | undefined
     return chainConfig.ethStakingContractAddress;
   } 
 }
-export const getNFTContractAddressByChainId = (chainId: string): string | undefined => {
+export const getNavhNFTContractAddressByChainId = (chainId: string): string | undefined => {
   const chainConfig = config[chainId];
   
   if (chainConfig && isSupportedNetwork(chainId)) {
     return chainConfig.navhHackerNFTContractAddress;
+  } 
+}
+export const getDemoNFTContractAddressByChainId = (chainId: string): string | undefined => {
+  const chainConfig = config[chainId];
+  
+  if (chainConfig && isSupportedNetwork(chainId)) {
+    return chainConfig.demoNFTContractAddress;
   } 
 }
 export const getBlockExplorerURLByChainId = (chainId: string): string | undefined => {

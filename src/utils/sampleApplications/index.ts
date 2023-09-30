@@ -2,12 +2,16 @@ import { Contract} from "ethers"
 import STAKING_CONTRACT_ABI from "../../abis/StakingContract.json"
 import X_SUPERHACK from "../../abis/xSuperhack.json"
 import NAVH_HACKER_NFT_ABI from "../../abis/NAVHHackerNFT.json"
-import { NAVHHackerNFT,StakingContract,XSuperhack } from "@/abis/types";
+import DEMO_NFT_ABI from "../../abis/DemoNFT.json"
+import { DemoNFT, NAVHHackerNFT,StakingContract,XSuperhack } from "@/abis/types";
 import { JsonRpcProvider,JsonRpcSigner } from '@ethersproject/providers'
 
 export function getNAVHHackerNFTContract(address:string,signerOrProvider: JsonRpcProvider|JsonRpcSigner):NAVHHackerNFT  {
     return  new Contract(address,NAVH_HACKER_NFT_ABI,signerOrProvider) as NAVHHackerNFT 
   }
+export function getDemoNFTContract(address:string,signerOrProvider: JsonRpcProvider|JsonRpcSigner):DemoNFT  {
+  return  new Contract(address,DEMO_NFT_ABI,signerOrProvider) as DemoNFT 
+}
 export function getXSuperhackNFTContract(address:string,signerOrProvider: JsonRpcProvider|JsonRpcSigner):XSuperhack  {
     return  new Contract(address,X_SUPERHACK,signerOrProvider) as XSuperhack 
   }

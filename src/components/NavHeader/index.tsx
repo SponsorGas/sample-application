@@ -28,8 +28,8 @@ const applications:ApplicationDropdownOption[] = [
   url:'/pay'
 },{
   id:'4',
-  name:"NAVHHacker NFT X Pimlico - (zkSessionAccount)",
-  value: <ApplicationLogo name='NAVHHacker NFT' sponsor="Pimlico" />,
+  name:"Demo NFT X Pimlico - (zkSessionAccount)",
+  value: <ApplicationLogo name='Demo NFT' sponsor="Pimlico" />,
   url:'/nft/simpleZkSessionAccount'
 },]
 
