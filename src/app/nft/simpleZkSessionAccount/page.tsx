@@ -220,9 +220,15 @@ export default function NFT() {
     }
     if(wallet.accounts.length > 0){
       fetchSCWAddressAndCode()
+    }else{
+      setLoadingMsg("Please Connect Wallet")
     }
-      
-  }, [wallet]);
+    if(wallet.accounts.length > 0 && sessionTime === 0 ){
+      setLoadingMsg("Configure Session time")
+    }else{
+      setLoadingMsg("You can Login now")
+    }
+  }, [sessionTime, wallet]);
 
   const handleMint = async () => {
     try{
