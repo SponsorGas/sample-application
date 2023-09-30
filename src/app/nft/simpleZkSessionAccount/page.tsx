@@ -63,9 +63,9 @@ export default function NFT() {
           // This defines the network, in this case, Mainnet.
           chainId: wallet.chainId,
           // Give a user-friendly name to the specific contract you're signing for.
-          name: 'NAVHHackerNFT',
+          name: 'DemoNFT',
           // Add a verifying contract to make sure you're establishing contracts with the proper entity.
-          verifyingContract: nftContractAddress,
+          verifyingContract: scwAddress,
           // This identifies the latest version.
           version: '1',
         },
@@ -74,7 +74,7 @@ export default function NFT() {
         // anything you want. There are no required fields. Be as explicit as possible when building out
         // the message schema.
         message: {
-          contents: 'New NavhHackerNFT Session',
+          contents: 'Demo NFT Session',
           sessionStartTime: sessionStartTime.toLocaleString(),
           sessionEndTime: sessionEndTime.toLocaleString() 
         },
