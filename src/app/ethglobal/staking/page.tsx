@@ -4,15 +4,15 @@ import {  Contract, ethers } from "ethers";
 import application_accepted from './application_accepted.png'
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
-import { SimpleAccount } from '@/utils/simpleAccount';
+import { SimpleAccount } from '@/utils/aa/simpleAccount';
 import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {  getBlockExplorerURLByChainId, getContractAddressByChainId,getEntryPointContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
-import { SimpleAccount__factory, StakingContract__factory } from '@/typechain-types';
 import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
+import { getStakingContract } from '@/utils/sampleApplications';
 
 
 export default function Staking() {
@@ -46,7 +46,8 @@ export default function Staking() {
     );
       
     const getStakingDetails = async () => {
-      const contract = StakingContract__factory.connect( stakingContractAddress!, provider )
+
+      const contract = getStakingContract( stakingContractAddress!, provider.getSigner() )
       const stakingAmount = await contract.stakingAmount();
       setStakingAmount(ethers.utils.formatEther(stakingAmount));
     };
@@ -77,7 +78,7 @@ export default function Staking() {
     );
 
 		const fetchStakedData = async () => {
-      const contract = StakingContract__factory.connect( stakingContractAddress!, provider )
+      const contract = getStakingContract( stakingContractAddress!, provider.getSigner() )
       let address=''
       try{
         if(selectedWalletType === 'EOA'){
@@ -150,16 +151,12 @@ export default function Staking() {
       const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
       const to =  stakingContractAddress!;
       const value = ethers.utils.parseEther(stakingAmount)
-      const stakingCall = StakingContract__factory.connect( stakingContractAddress!,
-                                signer
-                              ).interface.encodeFunctionData("stake")
+      const stakingCall = getStakingContract( stakingContractAddress!, provider.getSigner() )
+                              .interface.encodeFunctionData("stake")
       // const data = "0x68656c6c6f" // "hello" encoded to utf-8 bytes
       const data = stakingCall
       console.log(`Stake call data: ${data}`)
-      const simpleAccountContract = SimpleAccount__factory.connect(
-        simpleAccountAddress!,
-        signer,
-      )
+      const simpleAccountContract = simpleAccount.getSimpleAccountContract(simpleAccountAddress)
 
       const callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
       console.log("Generated callData:", callData)
@@ -255,15 +252,10 @@ export default function Staking() {
       const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
       const to =  stakingContractAddress!;
       const value = ethers.utils.parseEther('0')
-      const stakingCall = StakingContract__factory.connect( stakingContractAddress!,
-                                signer
-                              ).interface.encodeFunctionData("withdraw")
+      const stakingCall = getStakingContract( stakingContractAddress!, provider.getSigner() ).interface.encodeFunctionData("withdraw")
       // const data = "0x68656c6c6f" // "hello" encoded to utf-8 bytes
       const data = stakingCall
-      const simpleAccountContract = SimpleAccount__factory.connect(
-        simpleAccountAddress!,
-        signer,
-      )
+      const simpleAccountContract = simpleAccount.getSimpleAccountContract(simpleAccountAddress)
 
       const callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
       console.log("Generated callData:", callData)

@@ -1,22 +1,19 @@
 'use client'
 import { useMetaMask } from "@/hooks/useMetaMask";
 import { getBlockExplorerURLByChainId, getEntryPointContractAddressByChainId, getPimlicoChainNameByChainId } from "@/lib/config";
-import { SimpleAccount } from "@/utils/simpleAccount";
+import { SimpleAccount } from "@/utils/aa/simpleAccount";
 import { Contract, ethers } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import React, { FormEvent, Fragment, useEffect, useState } from "react";
 import WalletConnect from "@/components/WalletConnect";
 import {  ArrowRightIcon } from "@heroicons/react/24/outline";
 import PaymasterModal from "@/components/PaymasterModal";
-import { formatAddress, formatBalance } from "@/utils";
+import { formatAddress, formatBalance } from "@/utils/common";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { useToast } from "@/providers/ToastProvider";
 import { Dialog, Transition } from "@headlessui/react";
 import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
-import { SimpleAccount__factory } from "@/typechain-types";
-
-
 
 export default function Pay() {
 	const { wallet } = useMetaMask()
@@ -177,10 +174,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 				const to =  recipient!;
 				const value = ethers.utils.parseEther(amount)
 				const data = "0x"//"0x68656c6c6f" // "hello" encoded to utf-8 bytes
-				const simpleAccountContract = SimpleAccount__factory.connect(
-					simpleAccountAddress!,
-					signer,
-				)
+				const simpleAccountContract = simpleAccount.getSimpleAccountContract( simpleAccountAddress!)
 	
 				const callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
 				console.log("Generated callData:", callData)

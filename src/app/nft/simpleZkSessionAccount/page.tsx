@@ -6,16 +6,13 @@ import xSuperhackNFT from './NAVHHackerNFT.png'
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { defaultAbiCoder, hexlify} from 'ethers/lib/utils';
-import PaymasterModal from '@/components/PaymasterModal';
 import {  getBlockExplorerURLByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
-import { useSponsorGas, getPaymasters }  from 'sponsor-gas-sdk';
-import { Paymaster } from 'sponsor-gas-sdk/dist/model';
 import { useToast } from '@/providers/ToastProvider';
-import { SimpleZkSessionAccount } from '@/utils/zkSessionAccount';
-import { NAVHHackerNFT__factory, SimpleZkSessionAccount__factory } from '@/typechain-types';
-import generateProof from '@/utils/zkSessionAccountProof';
+import { ZkSessionAccount } from '@/utils/aa/zkSessionAccount';
+import generateProof from '@/utils/aa/zkSessionAccountProof';
+import { getNAVHHackerNFTContract } from '@/utils/sampleApplications';
 
 export interface Session{
     sessionCommitment:string,
@@ -119,12 +116,9 @@ export default function NFT() {
         window.ethereum as unknown as ethers.providers.ExternalProvider
       );
       const signer = provider.getSigner();
-      const simpleZkAccount = new SimpleZkSessionAccount(signer)
-      const [simpleAccountAddress,initCode] = await simpleZkAccount.getUserSimpleZkAccountAddress()
-      const simpleZkAccountContract = SimpleZkSessionAccount__factory.connect(
-        simpleAccountAddress!,
-        signer,
-      )
+      const zkSessionAccount = new ZkSessionAccount(signer,wallet.chainId)
+      const [simpleAccountAddress,initCode] = await zkSessionAccount.getUserSimpleZkAccountAddress()
+      const simpleZkAccountContract = zkSessionAccount.getSimpleZkAccountContract(simpleAccountAddress)
       
       console.log(session)
       console.log(wallet.chainId)
@@ -174,7 +168,7 @@ export default function NFT() {
         if (paymasterAndData){
           userOperation.paymasterAndData = paymasterAndData
 
-          const userOpHash = await simpleZkAccount._entryPoint.getUserOpHash(userOperation)
+          const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
           const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
           console.log(ethers.utils.verifyMessage(ethers.utils.arrayify(userOpHash),signature))
           console.log(await signer.getAddress())
@@ -227,11 +221,12 @@ export default function NFT() {
     );
     const fetchSCWAddress = async() =>{
       const signer = provider.getSigner();
-      const simpleZkSessionAccount = new SimpleZkSessionAccount(signer);
-      const [simpleZkSessionAccountAddress] = await simpleZkSessionAccount.getUserSimpleZkAccountAddress();
+      const zkSessionAccount = new ZkSessionAccount(signer,wallet.chainId);
+      const [simpleZkSessionAccountAddress] = await zkSessionAccount.getUserSimpleZkAccountAddress();
       setSCWAddress(simpleZkSessionAccountAddress);
     }
     if(wallet.accounts.length > 0){
+      console.log(wallet.chainId)
       console.log(`useEffect fetchSCWAddress executing`)
       fetchSCWAddress()
     }
@@ -247,18 +242,17 @@ export default function NFT() {
       const signer = provider.getSigner()
       const metadataFile = 'bafybeihiawt2btyclrj7hvihmpfrqlf6pcje6qfmwxlydql3k3lsfc7u7m'
       if(selectedWalletType === 'SCW'){
-        const simpleZkSessionAccount = new SimpleZkSessionAccount(signer)
-        const [simpleAccountAddress,initCode] = await simpleZkSessionAccount.getUserSimpleZkAccountAddress()
+        const zkSessionAccount = new ZkSessionAccount(signer,wallet.chainId)
+        const [simpleAccountAddress,initCode] = await zkSessionAccount.getUserSimpleZkAccountAddress()
+        const simpleZkSessionAccountContract = zkSessionAccount.getSimpleZkAccountContract(simpleAccountAddress)
+        
         const to =  nftContractAddress!;
         const value = ethers.utils.parseEther('0')
-        const NAVHHackerNFTContracts = await NAVHHackerNFT__factory.connect( nftContractAddress!, provider );
+        const NAVHHackerNFTContracts = getNAVHHackerNFTContract(nftContractAddress!,provider.getSigner()) //await NAVHHackerNFT__factory.connect( nftContractAddress!, provider );
         const mintingCall = NAVHHackerNFTContracts.interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
         const data = mintingCall
         console.log(`Mint call data: ${data}`)
-        const simpleZkSessionAccountContract = SimpleZkSessionAccount__factory.connect(
-          simpleAccountAddress!,
-          signer,
-        )
+        
         const session =  await simpleZkSessionAccountContract.getSessionForApplication(nftContractAddress!);
         console.log(session);
         let callData = simpleZkSessionAccountContract.interface.encodeFunctionData("execute", [to, value,data])
@@ -307,7 +301,7 @@ export default function NFT() {
         if (paymasterAndData && identity){
           userOperation.paymasterAndData = paymasterAndData
 
-          const userOpHash = await simpleZkSessionAccount._entryPoint.getUserOpHash(userOperation)
+          const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
           
           const nullifier = identity.nullifier;
           const trapdoor = identity.trapdoor;

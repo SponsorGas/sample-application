@@ -1,11 +1,11 @@
 import { useMetaMask } from '@/hooks/useMetaMask';
 import React, { useEffect, useState } from 'react';
 import { config, isSupportedNetwork } from '@/lib/config';
-import { formatAddress, formatBalance, formatChainAsNum } from '@/utils';
+import { formatAddress, formatBalance, formatChainAsNum } from '@/utils/common';
 import Dropdown, { DropdownOption } from '../Dropdown';
 import Image from 'next/image';
 import { ethers } from 'ethers';
-import { SimpleAccount } from '@/utils/simpleAccount';
+import { SimpleAccount } from '@/utils/aa/simpleAccount';
 import { parseEther } from 'ethers/lib/utils';
 
 interface TabProps {

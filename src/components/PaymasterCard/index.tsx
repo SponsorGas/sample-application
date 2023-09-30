@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatAddress } from "@/utils";
+import { formatAddress } from "@/utils/common";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import { StarIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";

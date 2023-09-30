@@ -18,7 +18,6 @@
     "eslint-config-next": "13.4.7"
   },
   "dependencies": {
-    "@account-abstraction/contracts": "^0.6.0",
     "@deepstream/client": "^7.0.2",
     "@headlessui/react": "^1.7.15",
     "@heroicons/react": "^2.0.18",
@@ -27,10 +26,8 @@
     "autoprefixer": "10.4.14",
     "ethers": "^5.7.0",
     "ffjavascript": "^0.2.54",
-    "hardhat-ethers": "^1.0.1",
     "next": "13.4.7",
     "next-themes": "^0.2.1",
-    "poseidon-lite": "^0.2.0",
     "postcss": "8.4.24",
     "react": "18.2.0",
     "react-dom": "18.2.0",

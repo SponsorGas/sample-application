@@ -2,7 +2,7 @@
 import { useState, useEffect, createContext, PropsWithChildren, useContext, useCallback } from 'react'
 import { EventType, MetaMaskSDK, SDKProvider } from '@metamask/sdk'
 // import _ from 'underscore'
-import { formatBalance } from '@/utils'
+import { formatBalance } from '@/utils/common'
 
 interface WalletState {
   accounts: any[],

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Dropdown, { DropdownOption } from "../Dropdown";
 import { useMetaMask } from "@/hooks/useMetaMask";
 import { config, getBlockExplorerURLByChainId } from "@/lib/config";
-import { formatAddress } from "@/utils";
+import { formatAddress } from "@/utils/common";
 
 export default function WalletConnect() {
   const { wallet,  connectMetaMask,} = useMetaMask()

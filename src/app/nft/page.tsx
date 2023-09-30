@@ -4,7 +4,7 @@ import {  Contract, ethers } from "ethers";
 import xSuperhackNFT from './NAVHHackerNFT.png'
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
-import { SimpleAccount } from '@/utils/simpleAccount';
+import { SimpleAccount } from '@/utils/aa/simpleAccount';
 import { hexlify } from 'ethers/lib/utils';
 import PaymasterModal from '@/components/PaymasterModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -14,7 +14,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useSponsorGas, getPaymasters }  from 'sponsor-gas-sdk';
 import { Paymaster } from 'sponsor-gas-sdk/dist/model';
 import { useToast } from '@/providers/ToastProvider';
-import { NAVHHackerNFT__factory, SimpleAccount__factory } from '@/typechain-types';
+import { getNAVHHackerNFTContract } from '@/utils/sampleApplications';
 
 export default function NFT() {
 
@@ -65,7 +65,7 @@ export default function NFT() {
     );
 
 		const fetchNFTData = async () => {
-      const contract = NAVHHackerNFT__factory.connect( nftContractAddress!, provider )
+      const contract = getNAVHHackerNFTContract( nftContractAddress!, provider.getSigner() )
       let address=''
       try{
         if(selectedWalletType === 'EOA'){
@@ -145,15 +145,12 @@ export default function NFT() {
         const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
         const to =  nftContractAddress!;
         const value = ethers.utils.parseEther('0')
-        const mintingCall = NAVHHackerNFT__factory.connect( nftContractAddress!,
+        const mintingCall = getNAVHHackerNFTContract( nftContractAddress!,
                                   signer
                                 ).interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
         const data = mintingCall
         console.log(`Mint call data: ${data}`)
-        const simpleAccountContract = SimpleAccount__factory.connect(
-          simpleAccountAddress!,
-          signer,
-        )
+        const simpleAccountContract = simpleAccount.getSimpleAccountContract( simpleAccountAddress! )
         let callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
         console.log("Generated callData:", callData)
   
