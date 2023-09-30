@@ -15,6 +15,7 @@ import { useSponsorGas, getPaymasters }  from 'sponsor-gas-sdk';
 import { Paymaster } from 'sponsor-gas-sdk/dist/model';
 import { useToast } from '@/providers/ToastProvider';
 import { getNAVHHackerNFTContract } from '@/utils/sampleApplications';
+import TransactionReceiptModal from '@/components/TransactionReceiptModal';
 
 export default function NFT() {
 
@@ -40,8 +41,6 @@ export default function NFT() {
     return '0x2ceb1c6626da4cd3c2d48ed99536a59b7f8241b9';
   }, [wallet.chainId]);
 
-  let count = 1;
-  console.log(count++)
   useEffect(() => {
     const provider = new ethers.providers.Web3Provider(
       window.ethereum as unknown as ethers.providers.ExternalProvider
@@ -52,9 +51,7 @@ export default function NFT() {
       const [simpleAccountAddress] = await simpleAccount.getUserSimpleAccountAddress();
       setSCWAddress(simpleAccountAddress);
     }
-    console.log(`useEffect fetchSCWAddress`)
     if(wallet.accounts.length > 0)
-      console.log(`useEffect fetchSCWAddress executing`)
       fetchSCWAddress()
   }, [wallet]);
 
@@ -77,14 +74,12 @@ export default function NFT() {
         setHasMinted(nftCount.toNumber() > 0); // Check if staked amount is greater than 0
         setMintedCount(ethers.utils.formatEther(nftCount))
       }catch(e){
-        console.log(e)
+        console.error(e)
       }
       
 			
 		};
-    console.log(`useEffect fetchNFTData`)
     if(wallet.accounts.length > 0 && nftContractAddress  && nftContractAddress != ''){
-      console.log(`useEffect fetchNFTData executing`)
       fetchNFTData();
       setSelectedPaymaster(undefined)
     }
@@ -98,14 +93,8 @@ export default function NFT() {
         setLoadingPaymaster(true);
         if(wallet.chainId != ''){
           const chainId = wallet.chainId;
-          // const applicationContractAddress = getContractAddressByChainId(chainId);
-          // console.log(applicationContractAddress)
           if (chainId && nftContractAddress) {
-            // const sponsorGas = new SponsorGas()
-            console.log(`fetching paymasters`)
-            console.log(`BASE_API_URL ${process.env.SPONSOR_GAS_BACKEND}`)
             const paymasters = await getPaymasters(chainId, nftContractAddress);
-            console.log(paymasters)
             setPaymasterList(paymasters);
           } else {
             console.error("Chain ID or application contract address is missing.");
@@ -117,12 +106,9 @@ export default function NFT() {
         setLoadingPaymaster(false);
       }
     };
-    console.log(`useEffect fetchRegisteredPaymaster`)
     if(wallet.accounts.length > 0 && nftContractAddress  && nftContractAddress != ''){
       fetchRegisteredPaymaster();
-      console.log(`useEffect fetchRegisteredPaymaster executing`)
     }else{
-      console.log(`useEffect fetchRegisteredPaymaster -> setLoadingPaymaster`)
       setLoadingPaymaster(false)
     }
     
@@ -149,19 +135,16 @@ export default function NFT() {
                                   signer
                                 ).interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
         const data = mintingCall
-        console.log(`Mint call data: ${data}`)
         const simpleAccountContract = simpleAccount.getSimpleAccountContract( simpleAccountAddress! )
         let callData = simpleAccountContract.interface.encodeFunctionData("execute", [to, value, data])
         console.log("Generated callData:", callData)
   
         // FILL OUT REMAINING USER OPERATION VALUES
         const gasPrice = await signer.getGasPrice()
-        console.log(`Checking Nonce of: ${simpleAccountAddress}`)
   
         if (provider == null) throw new Error('must have entryPoint to autofill nonce')
         const c = new Contract(simpleAccountAddress!, [`function getNonce() view returns(uint256)`], provider)
         const nonceValue = await getNonceValue(c)
-        console.log(nonceValue)
         const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
         const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
         const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`
@@ -184,18 +167,15 @@ export default function NFT() {
           const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
           setLoading(true)
           
-          console.log(`PaymasterAndData promise: ${paymasterAndData}`)
+          console.log(`PaymasterAndData: ${paymasterAndData}`)
           
           if (paymasterAndData){
             userOperation.paymasterAndData = paymasterAndData
 
             const userOpHash = await simpleAccount._entryPoint.getUserOpHash(userOperation)
             const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
-            console.log(ethers.utils.verifyMessage(ethers.utils.arrayify(userOpHash),signature))
-            console.log(await signer.getAddress())
             userOperation.signature = signature
             
-            console.log("UserOperation signature:", signature)
             console.log(userOperation)
 
             // SUBMIT THE USER OPERATION TO BE BUNDLED
@@ -218,13 +198,11 @@ export default function NFT() {
   
             const txHash = receipt.receipt.transactionHash
             const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
-            console.log(wallet.chainId, blockExplorer)
             console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
             addToast("Successfully Submitted User Operation",'success')
             setTransactionReceipt(`${blockExplorer}/tx/${txHash}`)
-            } else {
-            console.log('Invalid PaymasterAndData.');
-            
+          } else {
+            console.error('Invalid PaymasterAndData.');
           }
         }
 
@@ -387,69 +365,6 @@ export default function NFT() {
 
   );
 }
-interface TransactionReceiptModalProps{
-	isOpen:boolean
-	setOpen(arg0:boolean):void
-	receiptLink:string
-}
-function TransactionReceiptModal({isOpen,setOpen,receiptLink}:TransactionReceiptModalProps) {
-  return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10"  onClose={setOpen}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg lg:max-w-2xl">
-                <div className="bg-white flex flex-col px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                  <h2 className='text-xl font-semibold'>Transaction Receipt</h2>
-                  <div className="sm:flex flex-col sm:items-start">
-							      <p className="text-gray-600 mb-1">Receipt: 
-											<a href={receiptLink} className="text-blue-600 font-semibold"
-											 target="_blank"
-											 title="Open in Block Explorer">
-												{` Receipt link`}
-											</a>
-										</p>
-                    {/* <PaymastersGrid paymasterList={paymasterList} selectedPaymaster={selectedPaymaster} setSelectPaymaster={setSelectPaymaster}/> */}
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                  <button
-                    type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-                    onClick={() => setOpen(false)}
-                  >
-                    Done
-                  </button>
-                 
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
-  )
-}
 
 

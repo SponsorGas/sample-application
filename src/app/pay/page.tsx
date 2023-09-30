@@ -1,19 +1,19 @@
 'use client'
+import React, { FormEvent, useEffect, useState } from "react";
+import WalletConnect from "@/components/WalletConnect";
+import PaymasterModal from "@/components/PaymasterModal";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import { useMetaMask } from "@/hooks/useMetaMask";
 import { getBlockExplorerURLByChainId, getEntryPointContractAddressByChainId, getPimlicoChainNameByChainId } from "@/lib/config";
 import { SimpleAccount } from "@/utils/aa/simpleAccount";
 import { Contract, ethers } from "ethers";
-import { hexlify } from "ethers/lib/utils";
-import React, { FormEvent, Fragment, useEffect, useState } from "react";
-import WalletConnect from "@/components/WalletConnect";
+import { arrayify, hexlify, parseEther} from "ethers/lib/utils";
 import {  ArrowRightIcon } from "@heroicons/react/24/outline";
-import PaymasterModal from "@/components/PaymasterModal";
 import { formatAddress, formatBalance } from "@/utils/common";
-import LoadingOverlay from "@/components/LoadingOverlay";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { useToast } from "@/providers/ToastProvider";
-import { Dialog, Transition } from "@headlessui/react";
 import { Paymaster, useSponsorGas, getPaymasters } from 'sponsor-gas-sdk';
+import TransactionReceiptModal from "@/components/TransactionReceiptModal";
 
 export default function Pay() {
 	const { wallet } = useMetaMask()
@@ -26,7 +26,6 @@ export default function Pay() {
 	const fetchRegisteredPaymaster = async (chainId:string,applicationIdentifier:string) => {
 		try {
 			if(chainId != '' && chainId){
-				console.log('fetching paymasters')
 					const paymasters = await getPaymasters(chainId,applicationIdentifier);
 					return paymasters
 				}
@@ -147,7 +146,6 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 			setSCWBalance(formatBalance((await provider.getBalance(simpleAccountAddress)).toString()));
       setSCWAddress(simpleAccountAddress);
 			setSCWDeployed(await provider.getCode(simpleAccountAddress) !== '0x')
-			console.log(await provider.getTransactionCount(simpleAccountAddress))
     }
     if(wallet.accounts.length > 0)
       fetchSCWAddress()
@@ -158,7 +156,6 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
       window.ethereum as unknown as ethers.providers.ExternalProvider
     );
 		const balance = formatBalance((await provider.getBalance(scwAddress)).toString())
-		console.log('balance: ',balance)
 		setSCWBalance(balance);
 	}
 	const handleSubmit =  async (e:FormEvent) => {
@@ -172,7 +169,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 				const simpleAccount = new SimpleAccount(signer)
 				const [simpleAccountAddress,initCode] = await simpleAccount.getUserSimpleAccountAddress()
 				const to =  recipient!;
-				const value = ethers.utils.parseEther(amount)
+				const value = parseEther(amount)
 				const data = "0x"//"0x68656c6c6f" // "hello" encoded to utf-8 bytes
 				const simpleAccountContract = simpleAccount.getSimpleAccountContract( simpleAccountAddress!)
 	
@@ -180,22 +177,19 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 				console.log("Generated callData:", callData)
 				// FILL OUT REMAINING USER OPERATION VALUES
 				const gasPrice = await signer.getGasPrice()
-				console.log(`Checking Nonce of: ${simpleAccountAddress}`)
-	
 				if (provider == null) throw new Error('must have entryPoint to autofill nonce')
 				const c = new Contract(simpleAccountAddress!, [`function getNonce() view returns(uint256)`], provider)
 				const nonceValue = await getNonceValue(c)
-				console.log(nonceValue)
 				const userOperation = {
 						sender: simpleAccountAddress,
 						nonce:hexlify(nonceValue),
 						initCode:nonceValue === 0?initCode:'0x',
 						callData,
-						callGasLimit: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
-						verificationGasLimit: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
-						preVerificationGas: ethers.utils.hexlify(400_000), // hardcode it for now at a high value
-						maxFeePerGas: ethers.utils.hexlify(gasPrice),
-						maxPriorityFeePerGas: ethers.utils.hexlify(gasPrice),
+						callGasLimit: hexlify(400_000), // hardcode it for now at a high value
+						verificationGasLimit: hexlify(400_000), // hardcode it for now at a high value
+						preVerificationGas: hexlify(400_000), // hardcode it for now at a high value
+						maxFeePerGas: hexlify(gasPrice),
+						maxPriorityFeePerGas: hexlify(gasPrice),
 						paymasterAndData: "0x",
 						signature: "0x"
 				}
@@ -209,12 +203,9 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 						setLoading(true)
 						userOperation.paymasterAndData = paymasterAndData
 						const userOpHash = await simpleAccount._entryPoint.getUserOpHash(userOperation)
-						const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
-						console.log(ethers.utils.verifyMessage(ethers.utils.arrayify(userOpHash),signature))
-						console.log(await signer.getAddress())
+						const signature = await signer.signMessage( arrayify(userOpHash))
+
 						userOperation.signature = signature
-						
-						console.log("UserOperation signature:", signature)
 						console.log(userOperation)
 						// SUBMIT THE USER OPERATION TO BE BUNDLED
 						const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`
@@ -223,7 +214,6 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 							userOperation,
 							entryPointContractAddress // ENTRY_POINT_ADDRESS
 						])
-						
 						console.log("UserOperation hash:", userOperationHash)
 						// let's also wait for the userOperation to be included, by continually querying for the receipts
 						console.log("Querying for receipts...")
@@ -238,12 +228,11 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 	
 						const txHash = receipt.receipt.transactionHash
 						const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
-						console.log(wallet.chainId, blockExplorer)
 						console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
 						setTransactionReceipt(`${blockExplorer}/tx/${txHash}`)
 						addToast("Successfully Submitted User Operation",'success')
-						} else {
-						console.log('Window was closed without data.');
+					} else {
+						console.log('Modal was closed without paymasterAndData.');
 					}
 		}catch(e){
 			addToast("Error Occurred.",'error')
@@ -334,7 +323,7 @@ const SponsorPayForm = ({setCurrentStep,selectedPaymaster}:SponsorPayFormProps) 
 					setTransactionReceipt('')
 
 				}} 
-				sender={scwAddress} recipient={recipient} amount={amount} receiptLink={transactionReceipt} />}
+				 receiptLink={transactionReceipt} />}
 			</div>
 			
 		</form>
@@ -384,79 +373,3 @@ const PayXSponsorGasCard = ({handlePaymasterSelection,setCurrentStep,selectedPay
 			</div>
   );
 };
-
-interface TransactionReceiptModalProps{
-	isOpen:boolean
-	setOpen(arg0:boolean):void
-	sender:string
-	recipient:string
-	amount:string
-	receiptLink:string
-}
-
-function TransactionReceiptModal({isOpen,setOpen,sender,recipient,amount,receiptLink}:TransactionReceiptModalProps) {
-  return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10"  onClose={setOpen}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg lg:max-w-2xl">
-                <div className="bg-white flex flex-col px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                  <h2 className='text-xl font-semibold'>Transaction Receipt</h2>
-                  <div className="sm:flex flex-col sm:items-start">
-										<p className="text-gray-600 mb-1">Sender: <span className=" font-semibold">{formatAddress(sender).toLowerCase()}</span></p>
-										<p className="text-gray-600 mb-1">Recipient: 
-											<span className="ml-2 font-semibold">{formatAddress(recipient).toLowerCase()}</span>
-										</p>
-										<p className="text-gray-600 mb-1">Amount: <span className=" font-semibold">{amount} ETH</span></p>
-										<p className="text-gray-600 mb-1">Receipt: 
-											<a href={receiptLink} className="text-blue-600 font-semibold"
-											 target="_blank"
-											 title="Open in Block Explorer">
-												{` Receipt link`}
-											</a>
-										</p>
-                    {/* <PaymastersGrid paymasterList={paymasterList} selectedPaymaster={selectedPaymaster} setSelectPaymaster={setSelectPaymaster}/> */}
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                  <button
-                    type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-                    onClick={() => setOpen(false)}
-                  >
-                    Done
-                  </button>
-                 
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
-  )
-}
-
-

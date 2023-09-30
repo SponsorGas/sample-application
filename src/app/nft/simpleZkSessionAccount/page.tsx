@@ -1,24 +1,23 @@
 'use client'
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import Image from 'next/image'
+import xSuperhackNFT from './NAVHHackerNFT.png'
+import HorizontalLoading from '@/components/HorizontalLoading';
+import generateProof from '@/utils/aa/zkSessionAccountProof';
+import TransactionReceiptModal from '@/components/TransactionReceiptModal';
 import { Identity } from "@semaphore-protocol/identity"
 import {  Contract, ethers } from "ethers";
-import xSuperhackNFT from './NAVHHackerNFT.png'
-import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { useMetaMask } from '@/hooks/useMetaMask';
 import { defaultAbiCoder, hexlify} from 'ethers/lib/utils';
-import {  getBlockExplorerURLByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
-import HorizontalLoading from '@/components/HorizontalLoading';
 import { Dialog, Transition } from '@headlessui/react';
 import { useToast } from '@/providers/ToastProvider';
 import { ZkSessionAccount } from '@/utils/aa/zkSessionAccount';
-import generateProof from '@/utils/aa/zkSessionAccountProof';
 import { getNAVHHackerNFTContract } from '@/utils/sampleApplications';
+import {  getBlockExplorerURLByChainId,getEntryPointContractAddressByChainId,getNFTContractAddressByChainId,getPimlicoChainNameByChainId } from "@/lib/config";
 
 export interface Session{
     sessionCommitment:string,
-    // The UNIX timestamp (seconds) when the permission is not valid anymore (0 = infinite)
     validUntil:number,
-    // The UNIX timestamp when the permission becomes valid
     validAfter:number
 }
 
@@ -51,7 +50,6 @@ export default function NFT() {
   }
   const handleLogin = async () => {
     // Handle the logic for granting permissions here
-    console.log('Session Time:', sessionTime);
     const sessionStartTime = new Date(Date.now());
     const sessionEndTime = (new Date( Date.now() + sessionTime*60*1000))
     // Close the modal
@@ -99,10 +97,9 @@ export default function NFT() {
       const signedMessage = await window.ethereum?.request({
         method: 'eth_signTypedData_v4',
         params: [wallet.accounts[0], msgParams],
-      })
-      console.log(signedMessage)
+      }) as string
       
-      const identity = new Identity();
+      const identity = new Identity(signedMessage);
       setIdentity(identity)
       const session:Session={
         sessionCommitment:identity.commitment.toString(),
@@ -119,20 +116,13 @@ export default function NFT() {
       const zkSessionAccount = new ZkSessionAccount(signer,wallet.chainId)
       const [simpleAccountAddress,initCode] = await zkSessionAccount.getUserSimpleZkAccountAddress()
       const simpleZkAccountContract = zkSessionAccount.getSimpleZkAccountContract(simpleAccountAddress)
-      
-      console.log(session)
-      console.log(wallet.chainId)
-      console.log(nftContractAddress)
       let callData = simpleZkAccountContract.interface.encodeFunctionData("setSessionForApplication",[nftContractAddress!,session])
       console.log(callData)
 
       const gasPrice = await signer.getGasPrice()
-      console.log(`Checking Nonce of: ${simpleAccountAddress}`)
-
       if (provider == null) throw new Error('must have entryPoint to autofill nonce')
       const c = new Contract(simpleAccountAddress!, [`function getNonce() view returns(uint256)`], provider)
       const nonceValue = await getNonceValue(c)
-      console.log(nonceValue)
       const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
       const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
       const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`
@@ -151,65 +141,52 @@ export default function NFT() {
         paymasterAndData: "0x",
         signature: "0x"
       }
-        // const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
-        const sponsorUserOperationResult = await pimlicoProvider.send("pm_sponsorUserOperation", [
+      // const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
+      const sponsorUserOperationResult = await pimlicoProvider.send("pm_sponsorUserOperation", [
+        userOperation,
+        {
+          entryPoint: entryPointContractAddress,
+        },
+      ])
+      const paymasterAndData = sponsorUserOperationResult.paymasterAndData
+      console.log(`paymasterAndData: ${paymasterAndData}`)
+      setLoading(true)
+      
+      if (paymasterAndData){
+        userOperation.paymasterAndData = paymasterAndData
+        const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
+        const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
+        const sessionMode = '0x00000000'
+        const encodedSignature = defaultAbiCoder.encode(['bytes4'],[sessionMode])+ signature.substring(2)
+        userOperation.signature = encodedSignature
+        console.log(userOperation)
+
+        // SUBMIT THE USER OPERATION TO BE BUNDLED
+        const userOperationHash = await pimlicoProvider.send("eth_sendUserOperation", [
           userOperation,
-          {
-            entryPoint: entryPointContractAddress,
-          },
+          entryPointContractAddress // ENTRY_POINT_ADDRESS
         ])
-         
-        const paymasterAndData = sponsorUserOperationResult.paymasterAndData
-         
-        setLoading(true)
-        
-        console.log(`PaymasterAndData promise: ${paymasterAndData}`)
-        
-        if (paymasterAndData){
-          userOperation.paymasterAndData = paymasterAndData
+        console.log("UserOperation hash:", userOperationHash)
+        // let's also wait for the userOperation to be included, by continually querying for the receipts
+        console.log("Querying for receipts...")
+        let receipt = null
+        while (receipt === null) {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          receipt = await pimlicoProvider.send("eth_getUserOperationReceipt", [
+          userOperationHash,
+        ]);
+          console.log(receipt === null ? "Still waiting..." : receipt)
+        }
 
-          const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
-          const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
-          console.log(ethers.utils.verifyMessage(ethers.utils.arrayify(userOpHash),signature))
-          console.log(await signer.getAddress())
-          const sessionMode = '0x00000000'
-          console.log(defaultAbiCoder.encode(['bytes4'],[sessionMode]));
-          // const encodedSignature = defaultAbiCoder.encode(['bytes4','bytes'], [sessionMode,signature]);
-          const encodedSignature = defaultAbiCoder.encode(['bytes4'],[sessionMode])+ signature.substring(2)
-          userOperation.signature = encodedSignature
-          
-          console.log("UserOperation signature:", signature)
-          console.log(`Encoded Signature: ${encodedSignature}`)
-          console.log(userOperation)
-
-          // SUBMIT THE USER OPERATION TO BE BUNDLED
-          const userOperationHash = await pimlicoProvider.send("eth_sendUserOperation", [
-            userOperation,
-            entryPointContractAddress // ENTRY_POINT_ADDRESS
-          ])
-
-          console.log("UserOperation hash:", userOperationHash)
-          // let's also wait for the userOperation to be included, by continually querying for the receipts
-          console.log("Querying for receipts...")
-          let receipt = null
-          while (receipt === null) {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-            receipt = await pimlicoProvider.send("eth_getUserOperationReceipt", [
-            userOperationHash,
-          ]);
-            console.log(receipt === null ? "Still waiting..." : receipt)
-          }
-
-          const txHash = receipt.receipt.transactionHash
-          const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
-          console.log(wallet.chainId, blockExplorer)
-          console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
-          addToast("Successfully Submitted User Operation",'success')
-          setSession(session)
-          setLoading(false)
-          } else {
-          console.log('Invalid PaymasterAndData.');
-          }
+        const txHash = receipt.receipt.transactionHash
+        const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
+        console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
+        addToast("Successfully Submitted User Operation",'success')
+        setSession(session)
+        setLoading(false)
+      } else {
+        console.error('Invalid PaymasterAndData.');
+      }
     }else{
       connectMetaMask('0xe704')
     }
@@ -226,15 +203,12 @@ export default function NFT() {
       setSCWAddress(simpleZkSessionAccountAddress);
     }
     if(wallet.accounts.length > 0){
-      console.log(wallet.chainId)
-      console.log(`useEffect fetchSCWAddress executing`)
       fetchSCWAddress()
     }
       
   }, [wallet]);
 
   const handleMint = async () => {
-    // Implement stake functionality using ethers.js
     try{
       const provider = new ethers.providers.Web3Provider(
         window.ethereum as unknown as ethers.providers.ExternalProvider,
@@ -251,22 +225,14 @@ export default function NFT() {
         const NAVHHackerNFTContracts = getNAVHHackerNFTContract(nftContractAddress!,provider.getSigner()) //await NAVHHackerNFT__factory.connect( nftContractAddress!, provider );
         const mintingCall = NAVHHackerNFTContracts.interface.encodeFunctionData("mintNFT",[simpleAccountAddress,metadataFile])
         const data = mintingCall
-        console.log(`Mint call data: ${data}`)
-        
-        const session =  await simpleZkSessionAccountContract.getSessionForApplication(nftContractAddress!);
-        console.log(session);
         let callData = simpleZkSessionAccountContract.interface.encodeFunctionData("execute", [to, value,data])
         console.log("Generated callData:", callData)
-
         
-        // FILL OUT REMAINING USER OPERATION VALUES
         const gasPrice = await signer.getGasPrice()
-        console.log(`Checking Nonce of: ${simpleAccountAddress}`)
   
         if (provider == null) throw new Error('must have entryPoint to autofill nonce')
         const c = new Contract(simpleAccountAddress!, [`function getNonce() view returns(uint256)`], provider)
         const nonceValue = await getNonceValue(c)
-        console.log(nonceValue)
         const chain = getPimlicoChainNameByChainId(wallet.chainId) // find the list of chain names on the Pimlico verifying paymaster reference page
         const apiKey = process.env.NEXT_PUBLIC_PIMLICO_API_KEY
         const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`
@@ -285,7 +251,6 @@ export default function NFT() {
           paymasterAndData: "0x",
           signature: "0x"
         }
-        // const paymasterAndData = await getPaymasterAndData(userOperation,wallet.chainId,selectedPaymaster!,entryPointContractAddress)
         const sponsorUserOperationResult = await pimlicoProvider.send("pm_sponsorUserOperation", [
           userOperation,
           {
@@ -297,32 +262,22 @@ export default function NFT() {
          
         setLoading(true)
         
-        console.log(`PaymasterAndData promise: ${paymasterAndData}`)
+        console.log(`PaymasterAndData: ${paymasterAndData}`)
         if (paymasterAndData && identity){
           userOperation.paymasterAndData = paymasterAndData
-
           const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
-          
           const nullifier = identity.nullifier;
           const trapdoor = identity.trapdoor;
           const externalNullifier =  BigInt(userOpHash) >> BigInt(8) //BigInt(solidityKeccak256(['bytes'],[calldataHash])) >> BigInt(8)
-          
           const {proof,publicSignals} = await generateProof(trapdoor,nullifier,externalNullifier)
           const sessionProof: any[8] = proof
           const proofInput: any[3] = publicSignals
           const argv = sessionProof.map((x:any) => BigInt(x))
-          console.log(argv)
           const hexStrings = argv.map((n:BigInt) => '0x' + n.toString(16));
-
           const sessionMode = '0x00000001' // '0x00000001' for session mode, '0x00000000' for direct signature mode
           // Encode the array of hex strings
           const encodedSessionProof = defaultAbiCoder.encode(['bytes4','address','uint256','uint256[8]'], [sessionMode,nftContractAddress,proofInput[1],hexStrings]);
-          console.log(`SessionProof encoded: ${encodedSessionProof}`);
-          
-          
           userOperation.signature = encodedSessionProof
-          
-          console.log("UserOperation signature:", encodedSessionProof)
           console.log(userOperation)
 
           // SUBMIT THE USER OPERATION TO BE BUNDLED
@@ -330,8 +285,8 @@ export default function NFT() {
             userOperation,
             entryPointContractAddress // ENTRY_POINT_ADDRESS
           ])
-
           console.log("UserOperation hash:", userOperationHash)
+
           // let's also wait for the userOperation to be included, by continually querying for the receipts
           console.log("Querying for receipts...")
           let receipt = null
@@ -345,8 +300,6 @@ export default function NFT() {
 
           const txHash = receipt.receipt.transactionHash
           const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
-          console.log(wallet.chainId, blockExplorer)
-          console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
           addToast("Successfully Submitted User Operation",'success')
           setTransactionReceipt(`${blockExplorer}/tx/${txHash}`)
           } else {
@@ -506,20 +459,6 @@ export default function NFT() {
                                     <div className="ml-2 text-sm text-gray-700 mb-2 ">
                                       Pimlico Verifying Paymaster
                                     </div>
-                                    {/* <div className="ml-2 text-sm text-gray-700 mb-2 ">
-                                      {paymasterList.length > 0  
-                                        ? (selectedPaymaster 
-                                            ? <>
-                                                <span className="text-gray-600 mb-2 ">{` ${selectedPaymaster?.name} `}</span>
-                                                <span onClick={handleSelectPaymaster} className='text-blue-700 cursor-pointer'>{`Change`}</span>
-                                              </>
-                                            : <>
-                                                <span onClick={handleSelectPaymaster} className='text-blue-700 cursor-pointer'>{`Click `}</span>
-                                                <span>{`to choose from ${paymasterList.length} sponsors`}</span>
-                                              </>)
-                                        : <span>{`${paymasterList.length} sponsors available`}</span>
-                                      }
-                                    </div> */}
                                   </div>
                                   <div className="mb-4 flex items-center">
                                     <label className=" text-gray-600 font-bold ">
@@ -536,12 +475,6 @@ export default function NFT() {
                                     </select>
                                   </div>
                                   <div className="flex justify-end">
-                                    {/* <button
-                                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                      onClick={handleModalClose}
-                                    >
-                                      Save
-                                    </button> */}
                                     <button
                                       className="ml-2 bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
                                       onClick={handleModalClose}
@@ -568,20 +501,6 @@ export default function NFT() {
                 </Dialog>
               </Transition.Root>
             )}
-            {/* <div className="ml-2 text-sm text-gray-700 mb-2 ">
-              {paymasterList.length > 0  
-                ? (selectedPaymaster 
-                    ? <>
-                        <span className="text-gray-600 mb-2 ">{` ${selectedPaymaster?.name} `}</span>
-                        <span onClick={handleSelectPaymaster} className='text-blue-700 cursor-pointer'>{`Change`}</span>
-                      </>
-                    : <>
-                        <span onClick={handleSelectPaymaster} className='text-blue-700 cursor-pointer'>{`Click `}</span>
-                        <span>{`to choose from ${paymasterList.length} sponsors`}</span>
-                      </>)
-                : <span>{`${paymasterList.length} sponsors available`}</span>
-              }
-            </div> */}
             {(session) && (
               <button
                 className="bg-blue-500 text-white  py-2 px-4 rounded-md mr-2"
@@ -599,7 +518,6 @@ export default function NFT() {
 				receiptLink={transactionReceipt} />}
       </div>
     </div>
-
   );
 }
 interface ISessionCountdown{
@@ -647,68 +565,3 @@ const SessionCountdown = ({ sessionTime ,onSessionExpired}:ISessionCountdown) =>
     </div>
   );
 };
-
-interface TransactionReceiptModalProps{
-	isOpen:boolean
-	setOpen(arg0:boolean):void
-	receiptLink:string
-}
-function TransactionReceiptModal({isOpen,setOpen,receiptLink}:TransactionReceiptModalProps) {
-  return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10"  onClose={setOpen}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg lg:max-w-2xl">
-                <div className="bg-white flex flex-col px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                  <h2 className='text-xl font-semibold'>Transaction Receipt</h2>
-                  <div className="sm:flex flex-col sm:items-start">
-							      <p className="text-gray-600 mb-1">Receipt: 
-											<a href={receiptLink} className="text-blue-600 font-semibold"
-											 target="_blank"
-											 title="Open in Block Explorer">
-												{` Receipt link`}
-											</a>
-										</p>
-                    {/* <PaymastersGrid paymasterList={paymasterList} selectedPaymaster={selectedPaymaster} setSelectPaymaster={setSelectPaymaster}/> */}
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                  <button
-                    type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-                    onClick={() => setOpen(false)}
-                  >
-                    Done
-                  </button>
-                 
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
-  )
-}

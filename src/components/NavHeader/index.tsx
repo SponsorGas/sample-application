@@ -18,18 +18,18 @@ const applications:ApplicationDropdownOption[] = [
 
 {
   id:'2',
-  name:"NAVHHacker NFT",
+  name:"NAVHHacker NFT X SponsorGas - (simpleAccount)",
   value: <ApplicationLogo name='NAVHHacker NFT' sponsor="SponsorGas" />,
-  url:'/nft'
+  url:'/nft',
 },{
   id:'3',
-  name:"Sponsor Pay",
+  name:"Sponsor Pay X SponsorGas - (simpleAccount)",
   value: <ApplicationLogo name='Sponsor Pay' sponsor="SponsorGas" />,
   url:'/pay'
 },{
   id:'4',
-  name:"NAVHHacker NFT- zkAccount",
-  value: <ApplicationLogo name='NAVHHacker NFT' sponsor="SponsorGas" />,
+  name:"NAVHHacker NFT X Pimlico - (zkSessionAccount)",
+  value: <ApplicationLogo name='NAVHHacker NFT' sponsor="Pimlico" />,
   url:'/nft/simpleZkSessionAccount'
 },]
 
