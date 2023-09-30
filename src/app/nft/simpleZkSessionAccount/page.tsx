@@ -28,7 +28,7 @@ export default function NFT() {
   const [scwAddress,setSCWAddress] = useState('')
   const [scwInitCode,setSCWInitCode] = useState('')
   const [isLoading,setLoading] = useState(false)
-  const [loadingMsg,setLoadingMsg] = useState("")
+  const [logMessage,setLogMessage] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessionTime, setSessionTime] = useState(0); // Default to 5 minutes
   const [session,setSession] = useState<Session>()
@@ -53,7 +53,7 @@ export default function NFT() {
   const handleLogin = async () => {
     try{
       setLoading(true)
-      setLoadingMsg("Waiting user sign on session data...")
+      setLogMessage("Waiting user sign on session data...")
       const sessionStartTime = new Date(Date.now());
       const sessionEndTime = (new Date( Date.now() + sessionTime*60*1000))
       // Close the modal
@@ -145,7 +145,7 @@ export default function NFT() {
           paymasterAndData: "0x",
           signature: "0x"
         }
-        setLoadingMsg("Waiting paymaster signature...")
+        setLogMessage("Waiting paymaster signature...")
         const sponsorUserOperationResult = await pimlicoProvider.send("pm_sponsorUserOperation", [
           userOperation,
           {
@@ -159,7 +159,7 @@ export default function NFT() {
         if (paymasterAndData){
           userOperation.paymasterAndData = paymasterAndData
           const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
-          setLoadingMsg("Waiting user signature...")
+          setLogMessage("Waiting user signature...")
           const signature = await signer.signMessage( ethers.utils.arrayify(userOpHash))
           const sessionMode = '0x00000000'
           const encodedSignature = defaultAbiCoder.encode(['bytes4'],[sessionMode])+ signature.substring(2)
@@ -172,7 +172,7 @@ export default function NFT() {
             entryPointContractAddress // ENTRY_POINT_ADDRESS
           ])
           console.log("UserOperation hash:", userOperationHash)
-          setLoadingMsg("Waiting userOperation receipt...")
+          setLogMessage("Waiting userOperation receipt...")
           // let's also wait for the userOperation to be included, by continually querying for the receipts
           console.log("Querying for receipts...")
           let receipt = null
@@ -188,12 +188,12 @@ export default function NFT() {
           const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
           console.log(`UserOperation included: ${blockExplorer}/tx/${txHash}`)
           addToast("Successfully started session",'success')
-          setLoadingMsg("")
+          setLogMessage("")
           setSession(session)
           setLoading(false)
         } else {
           console.error('Invalid PaymasterAndData.');
-          setLoadingMsg("")
+          setLogMessage("")
         }
       }else{
         connectMetaMask('0xe704')
@@ -201,7 +201,7 @@ export default function NFT() {
     }catch(e){
       console.error(e)
       addToast("Error Occurred.",'error')
-      setLoadingMsg("")
+      setLogMessage("")
     }finally{
       setLoading(false)
     }
@@ -218,24 +218,26 @@ export default function NFT() {
       setSCWAddress(simpleZkSessionAccountAddress);
       setSCWInitCode(initCode);
     }
+    
     if(wallet.accounts.length > 0){
       fetchSCWAddressAndCode()
+      if (session) {
+        setLogMessage("You can mint now");
+      } else if (sessionTime === 0) {
+        setLogMessage("Configure Session time");
+      } else {
+        setLogMessage("You can Login now");
+      } 
     }else{
-      setLoadingMsg("Please Connect Wallet")
+      setLogMessage("Please Connect Wallet")
     }
-    if(wallet.accounts.length > 0 && sessionTime === 0 ){
-      setLoadingMsg("Configure Session time")
-    }else if(session){
-      setLoadingMsg("You can mint now")
-    }else{
-      setLoadingMsg("You can Login now")
-    }
+    
   }, [session, sessionTime, wallet]);
 
   const handleMint = async () => {
     try{
       setLoading(true)
-      setLoadingMsg("Processing request...")
+      setLogMessage("Processing request...")
       const provider = new ethers.providers.Web3Provider(
         window.ethereum as unknown as ethers.providers.ExternalProvider,
       )
@@ -275,7 +277,7 @@ export default function NFT() {
           paymasterAndData: "0x",
           signature: "0x"
         }
-        setLoadingMsg("Waiting paymaster signature...")
+        setLogMessage("Waiting paymaster signature...")
         const sponsorUserOperationResult = await pimlicoProvider.send("pm_sponsorUserOperation", [
           userOperation,
           {
@@ -286,7 +288,7 @@ export default function NFT() {
         const paymasterAndData = sponsorUserOperationResult.paymasterAndData
         console.log(`PaymasterAndData: ${paymasterAndData}`)
         if (paymasterAndData && identity){
-          setLoadingMsg("Generating proof of session...")
+          setLogMessage("Generating proof of session...")
           userOperation.paymasterAndData = paymasterAndData
           const userOpHash = await zkSessionAccount._entryPoint.getUserOpHash(userOperation)
           const nullifier = identity.nullifier;
@@ -309,7 +311,7 @@ export default function NFT() {
             entryPointContractAddress // ENTRY_POINT_ADDRESS
           ])
           console.log("UserOperation hash:", userOperationHash)
-          setLoadingMsg("Waiting UserOperation Receipt...")
+          setLogMessage("Waiting UserOperation Receipt...")
           // let's also wait for the userOperation to be included, by continually querying for the receipts
           console.log("Querying for receipts...")
           let receipt = null
@@ -325,10 +327,10 @@ export default function NFT() {
           const blockExplorer = getBlockExplorerURLByChainId(wallet.chainId)
           addToast("Successfully minted DEMO NFT",'success')
           setTransactionReceipt(`${blockExplorer}/tx/${txHash}`)
-          setLoadingMsg("")
+          setLogMessage("")
           } else {
           console.log('Invalid PaymasterAndData.');
-          setLoadingMsg("")
+          setLogMessage("")
           
         }  
       }
@@ -336,7 +338,7 @@ export default function NFT() {
     }catch(e){
       console.error(e)
       addToast("Error Occurred.",'error')
-      setLoadingMsg("")
+      setLogMessage("")
     }finally{
       setLoading(false)
     }
@@ -391,7 +393,7 @@ export default function NFT() {
             <Cog6ToothIcon className="h-6 w-6 cursor-pointer" onClick={handleConfigureSession}/>
           </div>
           <div className="flex items-center  text-black dark:text-black text-sm font-bold px-4 py-3" role="alert">
-            <p>{loadingMsg}</p>
+            <p>{logMessage}</p>
           </div>
           <Image className="h-2/6 w-auto rounded-full border-black border-solid" src={demoNFT} alt="DemoNFT" />
           
